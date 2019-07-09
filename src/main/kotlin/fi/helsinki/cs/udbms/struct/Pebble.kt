@@ -37,5 +37,5 @@ class Pebble(val label: String, val type: KnowledgeType, val weight: Double, val
         }
     }
 
-    override fun toString(): String = "$label ($type)"
+    override fun toString(): String = "$label @ $segment"
 }

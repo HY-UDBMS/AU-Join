@@ -26,12 +26,18 @@ package fi.helsinki.cs.udbms
 
 import fi.helsinki.cs.udbms.struct.*
 
-class FastPebbleGenerator(
-    threshold: Double,
-    synonyms: SynonymKnowledge,
-    taxonomies: TaxonomyKnowledge
-) : IPebbleGenerator(threshold, synonyms, taxonomies) {
-    override fun generate(str: SegmentedString, type: KnowledgeType): List<Pebble> {
+class PebbleGenerator(
+    private val synonymList: SynonymKnowledge?,
+    private val taxonomyList: TaxonomyKnowledge?,
+    private val gramSize: Int?
+) {
+    fun generate(str: SegmentedString) = listOf(
+        *generateTaxonomy(str).toTypedArray(),
+        *generateSynonym(str).toTypedArray(),
+        *generateJaccard(str).toTypedArray()
+    )
+
+    fun generate(str: SegmentedString, type: KnowledgeType): List<Pebble> {
         return when (type) {
             KnowledgeType.Taxonomy -> generateTaxonomy(str)
             KnowledgeType.Synonym -> generateSynonym(str)
@@ -40,16 +46,18 @@ class FastPebbleGenerator(
     }
 
     private fun generateTaxonomy(str: SegmentedString): List<Pebble> {
+        if (taxonomyList == null) return emptyList()
+
         val pebbles = mutableListOf<Pebble>()
 
         str.segments.forEach {
-            var dewey = taxonomies.getDewey(it.label) ?: return@forEach
+            var dewey = taxonomyList.getDewey(it.label) ?: return@forEach
 
             val w = 1.toDouble() / dewey.size
 
             // add self
             pebbles.add(Pebble(dewey.label, KnowledgeType.Taxonomy, w, it))
-
+            // add parents
             var parent = dewey.getParent()
             while (parent != null) {
                 pebbles.add(Pebble(parent.label, KnowledgeType.Taxonomy, w, it))
@@ -61,24 +69,38 @@ class FastPebbleGenerator(
     }
 
     private fun generateSynonym(str: SegmentedString): List<Pebble> {
+        if (synonymList == null) return emptyList()
+
         val pebbles = mutableListOf<Pebble>()
 
         str.segments.forEach {
-            val dewey = taxonomies.getDewey(it.label) ?: return@forEach
+            val lhs = synonymList.getLHS(it.label) ?: return@forEach
 
-            pebbles.add(Pebble(dewey.label, KnowledgeType.Taxonomy, 1.toDouble() / dewey.path.size, it))
+            pebbles.add(Pebble(lhs, KnowledgeType.Synonym, 1.toDouble(), it))
         }
 
         return pebbles.toList()
     }
 
     private fun generateJaccard(str: SegmentedString): List<Pebble> {
+        if (gramSize == null) return emptyList()
+
         val pebbles = mutableListOf<Pebble>()
 
         str.segments.forEach {
-            val dewey = taxonomies.getDewey(it.label) ?: return@forEach
+            if (it.numberOfWords > 1) return@forEach
+            if (it.label.length < gramSize) return@forEach
 
-            pebbles.add(Pebble(dewey.label, KnowledgeType.Taxonomy, 1.toDouble() / dewey.path.size, it))
+            val last = it.label.length - gramSize
+            for (i in 0..last)
+                pebbles.add(
+                    Pebble(
+                        it.label.substring(i, i + gramSize),
+                        KnowledgeType.Jaccard,
+                        1.toDouble() / (last + 1),
+                        it
+                    )
+                )
         }
 
         return pebbles.toList()

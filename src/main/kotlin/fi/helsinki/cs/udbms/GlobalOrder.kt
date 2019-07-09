@@ -1,7 +1,7 @@
 // 
 // MIT License
 // 
-// Copyright (c) 2019 pengxu
+// Copyright (c) 2019 paddy
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
@@ -24,12 +24,4 @@
 
 package fi.helsinki.cs.udbms
 
-import fi.helsinki.cs.udbms.struct.*
-
-abstract class IPebbleGenerator(
-    val threshold: Double,
-    val synonyms: SynonymKnowledge,
-    val taxonomies: TaxonomyKnowledge
-) {
-    abstract fun generate(str: SegmentedString, type: KnowledgeType): List<Pebble>
-}
+class GlobalOrder

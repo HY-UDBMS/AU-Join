@@ -24,35 +24,77 @@
 
 package fi.helsinki.cs.udbms.script
 
-import fi.helsinki.cs.udbms.util.IO
+import fi.helsinki.cs.udbms.struct.SegmentedString
+import fi.helsinki.cs.udbms.struct.SynonymKnowledge
+import fi.helsinki.cs.udbms.struct.TaxonomyKnowledge
+import fi.helsinki.cs.udbms.util.pmap
+import kotlinx.coroutines.runBlocking
+import java.io.File
 import java.util.*
+import java.util.zip.GZIPInputStream
+import kotlin.collections.HashMap
 
-fun main() {
-    val needles = IO.readTaxonomy("data/mesh.taxonomy.txt").knowledge.keys.map { " $it " }
+fun main(args: Array<String>) {
+    var needlesO = IO.readTaxonomy("data/mesh.taxonomy.txt").knowledge.keys
+        .map { " $it " }
+        .toMutableList()
+    needlesO.addAll(IO.readSynonym("data/mesh.synonym.txt").knowledge.keys.map { " $it " })
+
+    val needles = needlesO.toSet().toList()
 
     val aho = AhoCorasick()
     aho.addNeedles(needles)
     aho.prepare()
 
-    IO.readStringList("data/mesh.data.10k.1.txt").forEach {
+    val bw = File("data/mesh.segments.txt").bufferedWriter()
+
+    IO.readStringList("data/mesh.data.txt").forEach {
+        if (it.id % 500 == 0) println(it.id)
+
         var haystack = it.unionSegments().replace(";", " ")
         haystack = " $haystack "
 
         val numMatches = aho.search(haystack)
 
-        println(haystack)
-        println(numMatches
+        val rulesAndWordIndex = numMatches
             .asSequence()
-            .withIndex()
-            .filterNot { it.value == 0 }
-            .associateBy({ needles[it.index] }, { it.value })
-            .map { it.key + " - " + it.value }
-            .joinToString(separator = ",\n")
-        )
+            .associateBy({ needles[it.key] }, { it.value })
+            .map {
+                Pair(it.key, it.value.map { itt ->
+                    haystack.substring(0, itt).count { it == ' ' }
+                }
+                )
+            }
+
+        // append index to word
+        val indexedString = haystack.trim().split(' ').withIndex().map { "${it.index}:${it.value}" }
+
+        val segments = mutableListOf<String>()
+
+        segments.addAll(indexedString)
+
+        rulesAndWordIndex.forEach {
+            it.second.forEach { itt ->
+                segments.add(
+                    indexedString.subList(
+                        itt,
+                        itt + it.first.count { it == ' ' } - 1
+                    ).joinToString(separator = " ")
+                )
+            }
+        }
+
+        bw.write(it.id.toString())
+        bw.write("\t")
+
+        bw.write(segments.distinct().joinToString(separator = ";"))
+        bw.newLine()
     }
+
+    bw.close()
 }
 
-class AhoCorasick {
+private class AhoCorasick {
 
     inner class Node(
         val parent: Node?,
@@ -64,12 +106,12 @@ class AhoCorasick {
         var outputs = mutableListOf<Int>()
         val isRoot: Boolean
             get() = this.parent == null
-        var numMatches: Int = 0
+        var endIndex = mutableListOf<Int>()
     }
 
     private val root = Node(parent = null)
     private var needles = mutableListOf<String>()
-    private var matches = mutableListOf<Int>()
+    private var matches = HashMap<Int, MutableList<Int>>()
 
     fun addNeedles(needles: Iterable<String>) {
         needles.forEach { needle ->
@@ -108,7 +150,7 @@ class AhoCorasick {
     }
 
     fun prepare() {
-        matches = MutableList(needles.size) { 0 }
+        matches = HashMap()
         val queue: Queue<Node> = LinkedList<Node>()
         queue.add(root)
         while (queue.count() > 0) {
@@ -121,10 +163,17 @@ class AhoCorasick {
     private fun collectMatches(node: Node = root) {
         for (child in node.children.values) collectMatches(child) // depth first search
         if (node.isLeaf)
-            node.outputs.forEach { matches[it] += node.numMatches }
+            node.outputs.forEach {
+                if (node.endIndex.size == 0) return@forEach
+
+                if (matches[it] == null)
+                    matches[it] = mutableListOf<Int>()
+                matches[it]?.addAll(node.endIndex.map { itt -> itt - needles[it].length })
+                node.endIndex.clear()
+            }
     }
 
-    fun search(text: String): List<Int> {
+    fun search(text: String): HashMap<Int, MutableList<Int>> {
         var currState = root
         for (j in text.indices) {
             while (true) {
@@ -135,11 +184,53 @@ class AhoCorasick {
                 if (currState.isRoot) break
                 currState = currState.failLink as Node
             }
-            if (currState.isLeaf) currState.numMatches++
+            if (currState.isLeaf)
+                currState.endIndex.add(j + 1)
+
         }
         collectMatches()
         val result = matches
-        matches = MutableList(needles.size) { 0 }
+        matches = HashMap()
         return result
+    }
+}
+
+private class IO {
+    companion object {
+        @JvmStatic
+        fun readSynonym(file: String): SynonymKnowledge = runBlocking {
+            SynonymKnowledge(
+                readLines(file)
+                    .pmap { it.split('\t') }
+                    .pmap { Pair(it[0], ("${it[0]};${it[1]}").split(';')) }
+                    .flatMap { kv -> kv.second.map { Pair(it, kv.first) } }
+                    .associate { it }
+            )
+        }
+
+        @JvmStatic
+        fun readTaxonomy(file: String): TaxonomyKnowledge = runBlocking {
+            TaxonomyKnowledge(
+                readLines(file)
+                    .pmap { it.split('\t') }
+                    .associate { Pair(it[1], it[0]) }
+            )
+        }
+
+        @JvmStatic
+        fun readStringList(file: String): List<SegmentedString> = runBlocking {
+            readLines(file)
+                .pmap { it.split('\t') }
+                .pmap { SegmentedString(it[0].toInt(), it[1].split(';'), Unit) }
+        }
+
+        @JvmStatic
+        private fun readLines(file: String): List<String> =
+            (if (file.endsWith(".gz")) GZIPInputStream(File(file).inputStream()) else File(file).inputStream())
+                .bufferedReader()
+                .readLines()
+                .filterNot { it.isBlank() }
+                .filterNot { it.contentEquals("null") }
+
     }
 }

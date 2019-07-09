@@ -28,7 +28,7 @@ class SegmentedString(val id: Int, val segments: List<Segment>) {
     @Suppress("UNUSED_PARAMETER")
     constructor(id: Int, segments: List<String>, dummy: Unit) : this(id, segments.map { Segment(it) })
 
-    fun unionSegments(): String = segments.filterNot { it.isGenerated }.joinToString(separator = ";")
+    fun unionSegments(): String = segments.joinToString(separator = ";")
 
     private fun unionAllSegments(): String = segments.joinToString(separator = ";")
 

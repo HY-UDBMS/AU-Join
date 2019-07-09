@@ -38,7 +38,7 @@ class IO {
             SynonymKnowledge(
                 readLines(file)
                     .pmap { it.split('\t') }
-                    .pmap { Pair(it[0], it[1].split(';')) }
+                    .pmap { Pair(it[0], ("${it[0]};${it[1]}").split(';')) } // add LHS itself to hash
                     .flatMap { kv -> kv.second.map { Pair(it, kv.first) } }
                     .associate { it }
             )

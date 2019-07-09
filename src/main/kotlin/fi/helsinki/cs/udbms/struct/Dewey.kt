@@ -38,6 +38,7 @@ class Dewey(val label: String) {
             return Dewey(n1.path.take(getLCPLength(n1, n2)))
         }
 
+        @JvmStatic
         fun getLCPLength(n1: Dewey, n2: Dewey): Int {
             for (i in 0..min(n1.size, n2.size)) {
                 if (n1.path[i] != n2.path[i])

@@ -24,13 +24,12 @@
 
 package fi.helsinki.cs.udbms.struct
 
-class Segment(val label: String, val isGenerated: Boolean) {
-    constructor(label: String) : this(label, false)
+class Segment(label: String) {
+    val label = label.split(' ').joinToString(separator = " ") { it.substring(it.indexOf(':') + 1) }
+    val wordIds = label.split(' ').map { it.substring(0, it.indexOf(':')).toInt() }
+    val numberOfWords = wordIds.size
 
     override fun toString(): String {
-        return when (isGenerated) {
-            true -> "[$label]"
-            false -> label
-        }
+        return label
     }
 }

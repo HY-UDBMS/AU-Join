@@ -24,16 +24,15 @@
 
 package fi.helsinki.cs.udbms
 
-import fi.helsinki.cs.udbms.struct.KnowledgeType
 import fi.helsinki.cs.udbms.util.IO
 
 fun main(args: Array<String>) {
-    val list1 = IO.readStringList("data/mesh.data.txt")
+    val list1 = IO.readStringList("data/mesh.segments.10k.1.txt")
     val syn = IO.readSynonym("data/mesh.synonym.txt")
     val tax = IO.readTaxonomy("data/mesh.taxonomy.txt")
 
-    val pg = FastPebbleGenerator(0.7, syn, tax)
-    val sp = list1.associateWith { pg.generate(it, KnowledgeType.Taxonomy) }
+    val pg = PebbleGenerator(syn, tax, 3)
+    val sp = list1.associateWith { pg.generate(it) }
     println("test")
 }
 

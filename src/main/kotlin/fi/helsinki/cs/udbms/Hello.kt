@@ -25,45 +25,40 @@
 package fi.helsinki.cs.udbms
 
 import fi.helsinki.cs.udbms.struct.GlobalOrder
+import fi.helsinki.cs.udbms.struct.InvertedIndex
 import fi.helsinki.cs.udbms.util.IO
-import fi.helsinki.cs.udbms.util.pmap
-import kotlinx.coroutines.runBlocking
-import kotlin.system.measureTimeMillis
+import fi.helsinki.cs.udbms.util.parmap
 
-fun main(args: Array<String>) = runBlocking {
+fun main(args: Array<String>) {
 
-    println("Read strings ...")
-    val list1 = IO.readStringList("data/mesh.segments.txt")
+    print("Reading string: ")
+    val list1 = IO.readStringList("data/mesh.segments.5k.1.txt")
+    println("${list1.size} strings loaded")
+
+    print("Reading synonym: ")
     val syn = IO.readSynonym("data/mesh.synonym.txt")
+    println("${syn.knowledge.size} rules loaded")
+
+    print("Reading taxonomy: ")
     val tax = IO.readTaxonomy("data/mesh.taxonomy.txt")
+    println("${tax.knowledge.size} nodes loaded")
 
-    println("Generating pebbles ...")
+    print("Generating pebbles: ")
+    val pebbles = list1.parmap { Pair(it, PebbleGenerator(syn, tax, 4).generate(it)) }.toMap()
+    println("${pebbles.values.sumBy { it.size }} pebbles generated")
 
-    val pg = PebbleGenerator(syn, tax, 3)
-
-    val pebbles = list1.pmap { Pair(it, pg.generate(it)) }.toMap()
-
-
+    println("Initialising global order...")
     val order = GlobalOrder()
     order.addAll(pebbles.values.flatten())
 
-    println("Prefix reduction ...")
+    print("Selecting prefixes: ")
+    val reducer = FastPebbleReducer(0.8, 1, order)
+    val signatures = list1.map { Pair(it, reducer.reduce(it, pebbles[it] ?: emptyList())) }.toMap()
+    println("${signatures.values.sumBy { it.size }} pebbles in prefix")
 
-    val reducer = FastPebbleReducer(0.8, order)
+    val index = InvertedIndex()
+    signatures.map { str -> str.value.map { p -> index.add(p, p.segment) } }
 
-    var time = measureTimeMillis {
-        val signatures = list1.parallelStream().map { reducer.reduce(it, pebbles[it] ?: emptyList()) }
-
-        val jb = signatures.toArray()
-    }
-    println(time)
-    time = measureTimeMillis {
-        val signatures = list1.pmap { reducer.reduce(it, pebbles[it] ?: emptyList()) }
-
-        val d = signatures.size
-    }
-    println(time)
-
-    println("test")
+    val raw=index.index.toList().sortedBy { it.first.label }
 }
 

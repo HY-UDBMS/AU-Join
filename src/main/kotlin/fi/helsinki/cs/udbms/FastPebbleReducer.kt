@@ -26,28 +26,31 @@ package fi.helsinki.cs.udbms
 
 import fi.helsinki.cs.udbms.struct.*
 
-class FastPebbleReducer(threshold: Double, order: GlobalOrder) : PebbleReducer(threshold, order) {
+class FastPebbleReducer(threshold: Double, overlap: Int, order: GlobalOrder) :
+    PebbleReducer(threshold, overlap, order) {
     override fun reduce(str: SegmentedString, pebbles: Iterable<Pebble>): List<Pebble> {
         val bound = threshold * getMinPartitionSize(str)
         val pebblesSorted = pebbles.sortedByDescending { order.getOrder(it) }.toMutableList()
 
-        val sims = mutableMapOf<Segment, Array<Double>>()
-        var removed = 0.0
+        val store = mutableMapOf<Segment, Array<Double>>()
+        var removedSim = 0.0
 
         while (pebblesSorted.size > 1) {
             val it = pebblesSorted.first()
             pebblesSorted.removeAt(0) // delete the first pebble
 
-            sims.putIfAbsent(it.segment, Array(KnowledgeType.values().size) { 0.0 })
+            store.putIfAbsent(it.segment, Array(KnowledgeType.values().size) { 0.0 })
 
-            removed -= sims[it.segment]?.max() ?: 0.0
+            removedSim -= store[it.segment]?.max() ?: 0.0
 
-            val old = sims[it.segment]?.get(it.type.id) ?: 0.0
-            sims[it.segment]?.set(it.type.id, old + it.weight)
+            val old = store[it.segment]?.get(it.type.id) ?: 0.0
+            store[it.segment]?.set(it.type.id, old + it.weight)
 
-            removed += sims[it.segment]?.max() ?: 0.0
+            removedSim += store[it.segment]?.max() ?: 0.0
 
-            if (removed >= bound) { // if too much, add it back and stop
+            val futureSim = pebblesSorted.take(overlap - 1).sumByDouble { it.weight } // [overlap-1] heaviest pebbles
+
+            if (removedSim + futureSim >= bound) { // if too much, add it back and stop
                 pebblesSorted.add(0, it)
                 break
             }

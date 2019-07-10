@@ -27,15 +27,17 @@ package fi.helsinki.cs.udbms
 import fi.helsinki.cs.udbms.struct.GlobalOrder
 import fi.helsinki.cs.udbms.struct.Pebble
 import fi.helsinki.cs.udbms.struct.SegmentedString
+import kotlin.math.ceil
+import kotlin.math.ln
 
-abstract class PebbleReducer(val threshold: Double, val order: GlobalOrder) {
+abstract class PebbleReducer(val threshold: Double, val overlap: Int, val order: GlobalOrder) {
     abstract fun reduce(str: SegmentedString, pebbles: Iterable<Pebble>): List<Pebble>
 
     companion object {
         @JvmStatic
         fun getMinPartitionSize(str: SegmentedString): Int {
-
-            var minSize = 0
+            val n = str.segments.map { it.numberOfWords }.max() ?: 1
+            var parts = 0
             val usedWords = mutableSetOf<Int>()
 
             while (true) {
@@ -43,10 +45,11 @@ abstract class PebbleReducer(val threshold: Double, val order: GlobalOrder) {
 
                 if (nextSeg != null) {
                     usedWords.addAll(nextSeg.wordIds)
-                    minSize++
+                    parts++
                 }
 
-                if (usedWords.size == str.numberOfTokens) return minSize
+                if (usedWords.size == str.numberOfTokens)
+                    return ceil(parts.toDouble() / (ln(n.toDouble()) + 1)).toInt()
             }
         }
     }

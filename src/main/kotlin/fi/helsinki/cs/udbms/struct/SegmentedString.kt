@@ -28,7 +28,10 @@ class SegmentedString(val id: Int, val segments: List<Segment>) {
     val numberOfTokens = (segments.map { it.wordIds }.flatten().max() ?: -1) + 1
 
     @Suppress("UNUSED_PARAMETER")
-    constructor(id: Int, segments: List<String>, dummy: Unit) : this(id, segments.map { Segment(it) })
+    constructor(id: Int, segments: List<String>, dummy: Unit)
+            : this(id, segments.map { Segment(it) }) {
+        this.segments.forEach { it.segmentedString = this }
+    }
 
     fun unionSegments(): String = segments.joinToString(separator = ";")
 

@@ -51,9 +51,9 @@ class PebbleGenerator(
         val pebbles = mutableListOf<Pebble>()
 
         str.segments.forEach {
-            var dewey = taxonomyList.getDewey(it.label) ?: return@forEach
+            val dewey = taxonomyList.getDewey(it.label) ?: return@forEach
 
-            val w = 1.toDouble() / dewey.size
+            val w = 1.0 / dewey.size
 
             // add self
             pebbles.add(Pebble(dewey.label, KnowledgeType.Taxonomy, w, it))
@@ -76,7 +76,7 @@ class PebbleGenerator(
         str.segments.forEach {
             val lhs = synonymList.getLHS(it.label) ?: return@forEach
 
-            pebbles.add(Pebble(lhs, KnowledgeType.Synonym, 1.toDouble(), it))
+            pebbles.add(Pebble(lhs, KnowledgeType.Synonym, 1.0, it))
         }
 
         return pebbles.toList()
@@ -89,7 +89,14 @@ class PebbleGenerator(
 
         str.segments.forEach {
             if (it.numberOfWords > 1) return@forEach
-            if (it.label.length < gramSize) return@forEach
+
+            // no gram for synonym and taxonomy segment. Trust them more than Jaccard
+            if (synonymList?.getLHS(it.label) != null || taxonomyList?.getDewey(it.label) != null) return@forEach
+
+            if (it.label.length < gramSize) {
+                pebbles.add(Pebble(it.label, KnowledgeType.Jaccard, 1.0, it))
+                return@forEach
+            }
 
             val last = it.label.length - gramSize
             for (i in 0..last)
@@ -97,7 +104,7 @@ class PebbleGenerator(
                     Pebble(
                         it.label.substring(i, i + gramSize),
                         KnowledgeType.Jaccard,
-                        1.toDouble() / (last + 1),
+                        1.0 / (last + 1),
                         it
                     )
                 )

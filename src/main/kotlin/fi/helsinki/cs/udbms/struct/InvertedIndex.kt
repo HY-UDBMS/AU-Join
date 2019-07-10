@@ -25,4 +25,10 @@
 package fi.helsinki.cs.udbms.struct
 
 class InvertedIndex {
+    val index = mutableMapOf<Pebble, MutableList<Segment>>()
+
+    fun add(idx: Pebble, seg: Segment) =
+        index.getOrPut(idx, { mutableListOf() }).add(seg)
+
+    fun getList(idx: Pebble) = index[idx]
 }

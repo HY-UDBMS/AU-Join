@@ -27,37 +27,40 @@ package fi.helsinki.cs.udbms.util
 import fi.helsinki.cs.udbms.struct.SegmentedString
 import fi.helsinki.cs.udbms.struct.SynonymKnowledge
 import fi.helsinki.cs.udbms.struct.TaxonomyKnowledge
-import kotlinx.coroutines.runBlocking
 import java.io.File
 import java.util.zip.GZIPInputStream
 
 object IO {
     @JvmStatic
-    fun readSynonym(file: String): SynonymKnowledge = runBlocking {
+    fun readSynonym(file: String): SynonymKnowledge =
         SynonymKnowledge(
             readLines(file)
-                .pmap { it.split('\t') }
-                .pmap { Pair(it[0], ("${it[0]};${it[1]}").split(';')) } // add LHS itself to hash
+                //.par()
+                .map { it.split('\t') }
+                .map { Pair(it[0], ("${it[0]};${it[1]}").split(';')) } // add LHS itself to hash
+                //.unpar()
                 .flatMap { kv -> kv.second.map { Pair(it, kv.first) } }
                 .associate { it }
         )
-    }
 
     @JvmStatic
-    fun readTaxonomy(file: String): TaxonomyKnowledge = runBlocking {
+    fun readTaxonomy(file: String): TaxonomyKnowledge =
         TaxonomyKnowledge(
             readLines(file)
-                .pmap { it.split('\t') }
+                //.par()
+                .map { it.split('\t') }
+                //.unpar()
                 .associate { Pair(it[1], it[0]) }
         )
-    }
 
     @JvmStatic
-    fun readStringList(file: String): List<SegmentedString> = runBlocking {
+    fun readStringList(file: String): List<SegmentedString> =
         readLines(file)
-            .pmap { it.split('\t') }
-            .pmap { SegmentedString(it[0].toInt(), it[1].split(';'), Unit) }
-    }
+            //.par()
+            .map { it.split('\t') }
+            .map { SegmentedString(it[0].toInt(), it[1].split(';'), Unit) }
+            //.unpar()
+            .toList()
 
     @JvmStatic
     private fun readLines(file: String): List<String> =

@@ -24,15 +24,46 @@
 
 package fi.helsinki.cs.udbms
 
+import fi.helsinki.cs.udbms.struct.GlobalOrder
 import fi.helsinki.cs.udbms.util.IO
+import fi.helsinki.cs.udbms.util.pmap
+import kotlinx.coroutines.runBlocking
+import kotlin.system.measureTimeMillis
 
-fun main(args: Array<String>) {
-    val list1 = IO.readStringList("data/mesh.segments.10k.1.txt")
+fun main(args: Array<String>) = runBlocking {
+
+    println("Read strings ...")
+    val list1 = IO.readStringList("data/mesh.segments.txt")
     val syn = IO.readSynonym("data/mesh.synonym.txt")
     val tax = IO.readTaxonomy("data/mesh.taxonomy.txt")
 
+    println("Generating pebbles ...")
+
     val pg = PebbleGenerator(syn, tax, 3)
-    val sp = list1.associateWith { pg.generate(it) }
+
+    val pebbles = list1.pmap { Pair(it, pg.generate(it)) }.toMap()
+
+
+    val order = GlobalOrder()
+    order.addAll(pebbles.values.flatten())
+
+    println("Prefix reduction ...")
+
+    val reducer = FastPebbleReducer(0.8, order)
+
+    var time = measureTimeMillis {
+        val signatures = list1.parallelStream().map { reducer.reduce(it, pebbles[it] ?: emptyList()) }
+
+        val jb = signatures.toArray()
+    }
+    println(time)
+    time = measureTimeMillis {
+        val signatures = list1.pmap { reducer.reduce(it, pebbles[it] ?: emptyList()) }
+
+        val d = signatures.size
+    }
+    println(time)
+
     println("test")
 }
 

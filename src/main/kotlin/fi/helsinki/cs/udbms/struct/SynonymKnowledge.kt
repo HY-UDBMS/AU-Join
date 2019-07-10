@@ -24,10 +24,7 @@
 
 package fi.helsinki.cs.udbms.struct
 
-class SynonymKnowledge(val knowledge: HashMap<String, String>) {
-
-    constructor(map: Map<String, String>) : this(knowledge = HashMap(map))
-
+class SynonymKnowledge(val knowledge: Map<String, String>) {
     fun getLHS(rhs: String): String? = knowledge[rhs]
 
     override fun toString() = "${knowledge.size} items"

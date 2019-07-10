@@ -24,8 +24,8 @@
 
 package fi.helsinki.cs.udbms.struct
 
-enum class KnowledgeType {
-    Jaccard,
-    Taxonomy,
-    Synonym,
+enum class KnowledgeType(val id: Int) {
+    Jaccard(0),
+    Taxonomy(1),
+    Synonym(2),
 }

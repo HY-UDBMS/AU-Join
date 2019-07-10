@@ -24,9 +24,8 @@
 
 package fi.helsinki.cs.udbms.struct
 
-class TaxonomyKnowledge(val knowledge: HashMap<String, Dewey>) {
-
-    constructor(map: Map<String, String>) : this(knowledge = HashMap(map.mapValues { Dewey(it.value) }))
+class TaxonomyKnowledge(knowledge: Map<String, String>) {
+    val knowledge = knowledge.mapValues { Dewey(it.value) }
 
     fun getDewey(label: String): Dewey? = knowledge[label]
 

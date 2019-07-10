@@ -27,11 +27,6 @@ package fi.helsinki.cs.udbms.struct
 import kotlin.math.min
 
 class Dewey(val label: String) {
-    val path: List<Int> = label.split('.').map { it.toInt() }
-    val size: Int = path.size
-
-    constructor(path: List<Int>) : this(path.joinToString(separator = "."))
-
     companion object {
         @JvmStatic
         fun getLCP(n1: Dewey, n2: Dewey): Dewey {
@@ -47,6 +42,11 @@ class Dewey(val label: String) {
             return min(n1.size, n2.size)
         }
     }
+
+    val path: List<Int> = label.split('.').map { it.toInt() }
+    val size: Int = path.size
+
+    constructor(path: List<Int>) : this(path.joinToString(separator = "."))
 
     fun getParent(): Dewey? = if (size == 1) null else Dewey(path.take(size - 1))
 

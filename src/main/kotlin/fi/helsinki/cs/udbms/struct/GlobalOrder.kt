@@ -24,16 +24,12 @@
 
 package fi.helsinki.cs.udbms.struct
 
-class Pebble(val label: String, val type: KnowledgeType, val weight: Double, val segment: Segment) {
-    override fun hashCode(): Int = label.hashCode()
+class GlobalOrder {
+    private var order = mutableMapOf<Pebble, Int>()
 
-    override fun equals(other: Any?): Boolean {
-        return when {
-            other !is Pebble -> false
-            this.type != other.type -> false
-            else -> label.contentEquals(other.label)
-        }
+    fun addAll(pebbles: Iterable<Pebble>) {
+        order.putAll(pebbles.groupingBy { it }.eachCount())
     }
 
-    override fun toString(): String = "$label @ $segment"
+    fun getOrder(p: Pebble) = order[p] ?: Int.MIN_VALUE
 }

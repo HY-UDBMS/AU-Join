@@ -31,42 +31,40 @@ import kotlinx.coroutines.runBlocking
 import java.io.File
 import java.util.zip.GZIPInputStream
 
-class IO {
-    companion object {
-        @JvmStatic
-        fun readSynonym(file: String): SynonymKnowledge = runBlocking {
-            SynonymKnowledge(
-                readLines(file)
-                    .pmap { it.split('\t') }
-                    .pmap { Pair(it[0], ("${it[0]};${it[1]}").split(';')) } // add LHS itself to hash
-                    .flatMap { kv -> kv.second.map { Pair(it, kv.first) } }
-                    .associate { it }
-            )
-        }
-
-        @JvmStatic
-        fun readTaxonomy(file: String): TaxonomyKnowledge = runBlocking {
-            TaxonomyKnowledge(
-                readLines(file)
-                    .pmap { it.split('\t') }
-                    .associate { Pair(it[1], it[0]) }
-            )
-        }
-
-        @JvmStatic
-        fun readStringList(file: String): List<SegmentedString> = runBlocking {
+object IO {
+    @JvmStatic
+    fun readSynonym(file: String): SynonymKnowledge = runBlocking {
+        SynonymKnowledge(
             readLines(file)
                 .pmap { it.split('\t') }
-                .pmap { SegmentedString(it[0].toInt(), it[1].split(';'), Unit) }
-        }
-
-        @JvmStatic
-        private fun readLines(file: String): List<String> =
-            (if (file.endsWith(".gz")) GZIPInputStream(File(file).inputStream()) else File(file).inputStream())
-                .bufferedReader()
-                .readLines()
-                .filterNot { it.isBlank() }
-                .filterNot { it.contentEquals("null") }
-
+                .pmap { Pair(it[0], ("${it[0]};${it[1]}").split(';')) } // add LHS itself to hash
+                .flatMap { kv -> kv.second.map { Pair(it, kv.first) } }
+                .associate { it }
+        )
     }
+
+    @JvmStatic
+    fun readTaxonomy(file: String): TaxonomyKnowledge = runBlocking {
+        TaxonomyKnowledge(
+            readLines(file)
+                .pmap { it.split('\t') }
+                .associate { Pair(it[1], it[0]) }
+        )
+    }
+
+    @JvmStatic
+    fun readStringList(file: String): List<SegmentedString> = runBlocking {
+        readLines(file)
+            .pmap { it.split('\t') }
+            .pmap { SegmentedString(it[0].toInt(), it[1].split(';'), Unit) }
+    }
+
+    @JvmStatic
+    private fun readLines(file: String): List<String> =
+        (if (file.endsWith(".gz")) GZIPInputStream(File(file).inputStream()) else File(file).inputStream())
+            .bufferedReader()
+            .readLines()
+            .filterNot { it.isBlank() }
+            .filterNot { it.contentEquals("null") }
+
 }

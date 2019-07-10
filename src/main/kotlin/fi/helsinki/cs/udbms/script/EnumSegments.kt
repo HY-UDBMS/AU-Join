@@ -24,14 +24,9 @@
 
 package fi.helsinki.cs.udbms.script
 
-import fi.helsinki.cs.udbms.struct.SegmentedString
-import fi.helsinki.cs.udbms.struct.SynonymKnowledge
-import fi.helsinki.cs.udbms.struct.TaxonomyKnowledge
-import fi.helsinki.cs.udbms.util.pmap
-import kotlinx.coroutines.runBlocking
+import fi.helsinki.cs.udbms.util.IO
 import java.io.File
 import java.util.*
-import java.util.zip.GZIPInputStream
 import kotlin.collections.HashMap
 
 fun main(args: Array<String>) {
@@ -192,45 +187,5 @@ private class AhoCorasick {
         val result = matches
         matches = HashMap()
         return result
-    }
-}
-
-private class IO {
-    companion object {
-        @JvmStatic
-        fun readSynonym(file: String): SynonymKnowledge = runBlocking {
-            SynonymKnowledge(
-                readLines(file)
-                    .pmap { it.split('\t') }
-                    .pmap { Pair(it[0], ("${it[0]};${it[1]}").split(';')) }
-                    .flatMap { kv -> kv.second.map { Pair(it, kv.first) } }
-                    .associate { it }
-            )
-        }
-
-        @JvmStatic
-        fun readTaxonomy(file: String): TaxonomyKnowledge = runBlocking {
-            TaxonomyKnowledge(
-                readLines(file)
-                    .pmap { it.split('\t') }
-                    .associate { Pair(it[1], it[0]) }
-            )
-        }
-
-        @JvmStatic
-        fun readStringList(file: String): List<SegmentedString> = runBlocking {
-            readLines(file)
-                .pmap { it.split('\t') }
-                .pmap { SegmentedString(it[0].toInt(), it[1].split(';'), Unit) }
-        }
-
-        @JvmStatic
-        private fun readLines(file: String): List<String> =
-            (if (file.endsWith(".gz")) GZIPInputStream(File(file).inputStream()) else File(file).inputStream())
-                .bufferedReader()
-                .readLines()
-                .filterNot { it.isBlank() }
-                .filterNot { it.contentEquals("null") }
-
     }
 }

@@ -24,10 +24,17 @@
 
 package fi.helsinki.cs.udbms.util
 
-
 import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
 
 suspend fun <A, B> Iterable<A>.pmap(f: suspend (A) -> B): List<B> = coroutineScope {
     map { async { f(it) } }.map { it.await() }
+}
+
+suspend fun <K, V> Iterable<K>.passociateWith(f: suspend (K) -> V) = coroutineScope {
+    associateWith { async { f(it) } }.mapValues { it.value.await() }
+}
+
+suspend fun <A> Collection<A>.pforEach(f: suspend (A) -> Unit): Unit = coroutineScope {
+    map { async { f(it) } }.forEach { it.await() }
 }

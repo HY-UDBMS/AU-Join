@@ -24,7 +24,6 @@
 
 package fi.helsinki.cs.udbms
 
-import com.xenomachina.argparser.ArgParser
 import com.xenomachina.argparser.mainBody
 import de.mpicbg.scicomp.kutils.parmap
 import fi.helsinki.cs.udbms.struct.*
@@ -33,57 +32,64 @@ import fi.helsinki.cs.udbms.util.RuntimeParameters
 import kotlin.system.measureTimeMillis
 
 fun main(args: Array<String>) = mainBody {
-    val params = ArgParser(args).parseInto(::RuntimeParameters)
+    val params = RuntimeParameters.initialise(args)
 
-    print("Reading string......... ")
+    println()
+    println("Running on ${params.threads} threads")
+    println()
+
+    print("Reading string... ")
     val list1 = IO.readSegmentedStrings(params.list1)
     val list2 = IO.readSegmentedStrings(params.list2)
     println("${list1.size} + ${list2.size} strings loaded")
 
     var syn: SynonymKnowledge? = null
     if (params.synonym.isNotEmpty()) {
-        print("Reading synonym......... ")
+        print("Reading synonym... ")
         syn = IO.readSynonym(params.synonym)
         println("${syn.knowledge.size} rules loaded")
     }
-
     var tax: TaxonomyKnowledge? = null
     if (params.taxonomy.isNotEmpty()) {
-        print("Reading taxonomy......... ")
+        print("Reading taxonomy... ")
         tax = IO.readTaxonomy("data/mesh.taxonomy.txt")
         println("${tax.knowledge.size} nodes loaded")
     }
 
-    print("Generating pebbles......... ")
-    val pebbles1 = list1.parmap { Pair(it, PebbleGenerator(syn, tax, params.gram).generate(it)) }.toMap()
-    val pebbles2 = list2.parmap { Pair(it, PebbleGenerator(syn, tax, params.gram).generate(it)) }.toMap()
-    println("${pebbles1.values.sumBy { it.size }} + ${pebbles2.values.sumBy { it.size }} pebbles generated")
-
-    println("Initialising global order")
-    val order = GlobalOrder()
-    order.addAll(pebbles1.values.flatten())
-    order.addAll(pebbles2.values.flatten())
-
-    print("Selecting prefixes in parallel......... ")
     var signatures1: Map<SegmentedString, List<Pebble>> = emptyMap()
     var signatures2: Map<SegmentedString, List<Pebble>> = emptyMap()
-    var time = measureTimeMillis {
-        val reducer = FastPebbleReducer(params.threshold, params.overlap, order)
-        signatures1 = list1.parmap { Pair(it, reducer.reduce(it, pebbles1[it] ?: emptyList())) }.toMap()
-        signatures2 = list2.parmap { Pair(it, reducer.reduce(it, pebbles2[it] ?: emptyList())) }.toMap()
-    }
-    println("${signatures1.values.sumBy { it.size }} + ${signatures2.values.sumBy { it.size }} pebbles as signatures; time cost $time ms")
 
-    val index1 = InvertedIndex()
-    signatures1.map { str -> str.value.map { p -> index1.add(p, p.segment) } }
+    run {
+        print("Generating pebbles... ")
+        val pebbles1 = list1.parmap { Pair(it, PebbleGenerator(syn, tax, params.gram).generate(it)) }.toMap()
+        val pebbles2 = list2.parmap { Pair(it, PebbleGenerator(syn, tax, params.gram).generate(it)) }.toMap()
+        println("${pebbles1.values.sumBy { it.size }} + ${pebbles2.values.sumBy { it.size }} pebbles generated")
+
+        println("Initialising global ordering... ")
+        val order = GlobalOrder()
+        order.addAll(pebbles1.values.flatten())
+        order.addAll(pebbles2.values.flatten())
+
+        print("Selecting prefixes... ")
+        val time = measureTimeMillis {
+            val reducer = FastPebbleReducer(params.threshold, params.overlap, order)
+            signatures1 = list1.parmap { Pair(it, reducer.reduce(it, pebbles1[it] ?: emptyList())) }.toMap()
+            signatures2 = list2.parmap { Pair(it, reducer.reduce(it, pebbles2[it] ?: emptyList())) }.toMap()
+        }
+        println("${signatures1.values.sumBy { it.size }} + ${signatures2.values.sumBy { it.size }} pebbles as signatures in $time ms")
+    }.run { println("Cleansing up... "); System.gc(); System.runFinalization(); }
+
+    println("Building inverted list... ")
+    //val index1 = InvertedIndex()
+    //signatures1.map { str -> str.value.map { p -> index1.add(p, p.segment) } }
 
     val index2 = InvertedIndex()
     signatures2.map { str -> str.value.map { p -> index2.add(p, p.segment) } }
 
-    print("Filtering......... ")
+    print("Filtering... ")
     var candidates: List<SegmentedStringPair> = emptyList()
-    time = measureTimeMillis {
-        candidates = AdaptivePrefixFilter(params.threshold, params.overlap).getCandidates(index1, index2)
+    val time = measureTimeMillis {
+        candidates = AdaptivePrefixFilter(params.threshold, params.overlap).getCandidates(signatures1, index2)
     }
-    println("${candidates.size} candidates obtained; time cost $time ms")
+    println("${candidates.size} candidates obtained in $time ms")
 }

@@ -84,6 +84,7 @@ class PebbleGenerator(
 
     private fun generateJaccard(str: SegmentedString): List<Pebble> {
         if (gramSize == null) return emptyList()
+        if (gramSize < 2) return emptyList()
 
         val pebbles = mutableListOf<Pebble>()
 

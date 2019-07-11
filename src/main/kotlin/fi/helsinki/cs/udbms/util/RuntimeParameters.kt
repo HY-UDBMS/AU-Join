@@ -27,8 +27,35 @@ package fi.helsinki.cs.udbms.util
 import com.xenomachina.argparser.ArgParser
 import com.xenomachina.argparser.InvalidArgumentException
 import com.xenomachina.argparser.default
+import kotlin.system.exitProcess
 
 class RuntimeParameters(parser: ArgParser) {
+    companion object {
+        @JvmStatic
+        private var parser: RuntimeParameters? = null
+
+        @JvmStatic
+        fun initialise(args: Array<String>): RuntimeParameters {
+            parser = ArgParser(args).parseInto(::RuntimeParameters)
+
+            if (parser!!.synonym.isEmpty() && parser!!.taxonomy.isEmpty() && parser!!.gram == 0) {
+                println("You must specify at least one of --jaccard, --taxonomy, or --synonym")
+                exitProcess(1)
+            }
+            return parser!!
+        }
+
+        @JvmStatic
+        fun getInstance() = parser
+    }
+
+    val threads by parser.storing(
+        "-j", "--thread",
+        help = "number of threads (default: cores - 2)"
+    ) { toInt() }.default(maxOf(Runtime.getRuntime().availableProcessors() - 2, 1)).addValidator {
+        if (value < 1) throw InvalidArgumentException("Number of threads must be at least 1")
+    }
+
     val threshold by parser.storing(
         "-t", "--threshold",
         help = "similarity threshold (0 - 1)"
@@ -44,19 +71,17 @@ class RuntimeParameters(parser: ArgParser) {
     }
 
     val gram by parser.storing(
-        "--jac",
-        help = "gram size for Jaccard similarity (default: 5)"
-    ) { toInt() }.default(5).addValidator {
-        if (value <= 1) throw InvalidArgumentException("Jaccard gram size must be at least 2")
-    }
+        "--jaccard",
+        help = "gram size for Jaccard similarity (> 1)"
+    ) { toInt() }.default(0)
 
     val taxonomy by parser.storing(
-        "--tax",
+        "--taxonomy",
         help = "filename of taxonomy knowledge"
     ) { toString() }.default { "" }
 
     val synonym by parser.storing(
-        "--sym",
+        "--synonym",
         help = "filename of synonym knowledge"
     ) { toString() }.default { "" }
 

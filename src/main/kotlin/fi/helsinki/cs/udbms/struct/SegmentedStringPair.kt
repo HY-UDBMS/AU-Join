@@ -24,6 +24,4 @@
 
 package fi.helsinki.cs.udbms.struct
 
-import fi.helsinki.cs.udbms.struct.SegmentedString
-
 data class SegmentedStringPair(val first: SegmentedString, val second: SegmentedString)

@@ -30,7 +30,6 @@ class Segment(label: String) {
     val wordIds = label.split(' ').map { it.substring(0, it.indexOf(':')).toInt() }
     val numberOfWords = wordIds.size
 
-
     override fun toString(): String {
         return label
     }

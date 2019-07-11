@@ -29,7 +29,7 @@ import fi.helsinki.cs.udbms.struct.*
 class FastPebbleReducer(threshold: Double, overlap: Int, order: GlobalOrder) :
     PebbleReducer(threshold, overlap, order) {
     override fun reduce(str: SegmentedString, pebbles: Iterable<Pebble>): List<Pebble> {
-        val bound = threshold * getMinPartitionSize(str)
+        val bound = threshold * str.minPartitionSize
         val pebblesSorted = pebbles.sortedByDescending { order.getOrder(it) }.toMutableList()
 
         val store = mutableMapOf<Segment, Array<Double>>()

@@ -24,12 +24,16 @@
 
 package fi.helsinki.cs.udbms.struct
 
-class SegmentedString(val id: Int, val segments: List<Segment>) {
+import kotlin.math.ceil
+import kotlin.math.ln
+
+class SegmentedString(val datasetId: Int, val id: Int, val segments: List<Segment>) {
     val numberOfTokens = (segments.map { it.wordIds }.flatten().max() ?: -1) + 1
+    val minPartitionSize = calculateMinPartitionSize()
 
     @Suppress("UNUSED_PARAMETER")
-    constructor(id: Int, segments: List<String>, dummy: Unit)
-            : this(id, segments.map { Segment(it) }) {
+    constructor(datasetId: Int, id: Int, segments: List<String>, dummy: Unit)
+            : this(datasetId, id, segments.map { Segment(it) }) {
         this.segments.forEach { it.segmentedString = this }
     }
 
@@ -37,5 +41,23 @@ class SegmentedString(val id: Int, val segments: List<Segment>) {
 
     private fun unionAllSegments(): String = segments.joinToString(separator = ";")
 
-    override fun toString() = "$id: ${unionAllSegments()}"
+    override fun toString() = "$datasetId[$id]: ${unionAllSegments()}"
+
+    private fun calculateMinPartitionSize(): Int {
+        val n = this.segments.map { it.numberOfWords }.max() ?: 1
+        var parts = 0
+        val usedWords = mutableSetOf<Int>()
+
+        while (true) {
+            val nextSeg = this.segments.maxBy { it.wordIds.subtract(usedWords).size }
+
+            if (nextSeg != null) {
+                usedWords.addAll(nextSeg.wordIds)
+                parts++
+            }
+
+            if (usedWords.size == this.numberOfTokens)
+                return ceil(parts.toDouble() / (ln(n.toDouble()) + 1)).toInt()
+        }
+    }
 }

@@ -43,7 +43,7 @@ fun main(args: Array<String>) {
 
     val bw = File("data/mesh.segments.txt").bufferedWriter()
 
-    IO.readStringList("data/mesh.data.txt").forEach {
+    IO.readSegmentedStrings("data/mesh.data.txt").forEach {
         if (it.id % 500 == 0) println(it.id)
 
         var haystack = it.unionSegments().replace(";", " ")

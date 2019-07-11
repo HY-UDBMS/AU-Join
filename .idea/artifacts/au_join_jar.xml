@@ -3,10 +3,12 @@
     <output-path>$PROJECT_DIR$/out/artifacts/AU_Join_jar</output-path>
     <root id="archive" name="AU-Join.jar">
       <element id="module-output" name="au-join" />
-      <element id="extracted-dir" path="$MAVEN_REPOSITORY$/org/jetbrains/kotlin/kotlin-stdlib-common/1.3.40/kotlin-stdlib-common-1.3.40.jar" path-in-jar="/" />
       <element id="extracted-dir" path="$MAVEN_REPOSITORY$/org/jetbrains/annotations/13.0/annotations-13.0.jar" path-in-jar="/" />
-      <element id="extracted-dir" path="$MAVEN_REPOSITORY$/org/jetbrains/kotlin/kotlin-stdlib/1.3.40/kotlin-stdlib-1.3.40.jar" path-in-jar="/" />
-      <element id="extracted-dir" path="$MAVEN_REPOSITORY$/org/jetbrains/kotlinx/kotlinx-coroutines-core/1.3.0-M2/kotlinx-coroutines-core-1.3.0-M2.jar" path-in-jar="/" />
+      <element id="library" level="project" name="Maven: org.jetbrains.kotlin:kotlin-stdlib:1.3.41" />
+      <element id="library" level="project" name="Maven: org.jetbrains.kotlin:kotlin-stdlib-common:1.3.41" />
+      <element id="library" level="project" name="Maven: org.jetbrains:annotations:13.0" />
+      <element id="library" level="project" name="Maven: com.xenomachina:kotlin-argparser:2.0.7" />
+      <element id="library" level="project" name="Maven: com.xenomachina:xenocom:0.0.7" />
     </root>
   </artifact>
 </component>

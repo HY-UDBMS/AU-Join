@@ -1,7 +1,7 @@
 // 
 // MIT License
 // 
-// Copyright (c) 2019 paddy
+// Copyright (c) 2017 Holger Brandl
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
@@ -22,7 +22,7 @@
 // SOFTWARE.
 // 
 
-package fi.helsinki.cs.udbms.util
+package de.mpicbg.scicomp.kutils
 
 import java.util.concurrent.ConcurrentLinkedQueue
 import java.util.concurrent.ExecutorService
@@ -30,8 +30,6 @@ import java.util.concurrent.Executors
 
 /**
  * Parallel collection mimicking  scala's .par().
- *
- * @author Holger Brandl
  */
 
 /** A delegated tagging interface to allow for parallized extension functions */

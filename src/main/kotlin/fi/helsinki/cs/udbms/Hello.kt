@@ -24,10 +24,10 @@
 
 package fi.helsinki.cs.udbms
 
+import de.mpicbg.scicomp.kutils.parmap
 import fi.helsinki.cs.udbms.struct.GlobalOrder
 import fi.helsinki.cs.udbms.struct.InvertedIndex
 import fi.helsinki.cs.udbms.util.IO
-import fi.helsinki.cs.udbms.util.parmap
 
 fun main(args: Array<String>) {
 
@@ -59,6 +59,6 @@ fun main(args: Array<String>) {
     val index = InvertedIndex()
     signatures.map { str -> str.value.map { p -> index.add(p, p.segment) } }
 
-    val raw=index.index.toList().sortedBy { it.first.label }
+    val raw = index.index.toList().sortedBy { it.first.label }
 }
 

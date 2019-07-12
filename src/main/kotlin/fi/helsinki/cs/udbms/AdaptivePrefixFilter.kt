@@ -58,9 +58,9 @@ class AdaptivePrefixFilter(private val threshold: Double, private val overlap: I
                         < threshold * max(string1.minPartitionSize, string2.minPartitionSize)
                     ) return@nextString2
 
-                    // check if either segment1 or segment2 is used for string2
+                    // check if either segment1 or segment2 is used by any other pair
                     val used = usedSegments.getOrPut(string2, { mutableSetOf() })
-                    if (used.contains(segment1) || used.contains(segment2))
+                    if (used.contains(segment1) xor used.contains(segment2))
                         return@nextString2
 
                     // mark segment1 and segment2 as used for string2

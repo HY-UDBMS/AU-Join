@@ -51,7 +51,7 @@ fun main(args: Array<String>) = mainBody {
     var tax: TaxonomyKnowledge? = null
     if (params.taxonomy.isNotEmpty()) {
         print("Reading taxonomy... ")
-        tax = IO.readTaxonomy("data/mesh.taxonomy.txt")
+        tax = IO.readTaxonomy(params.taxonomy)
         println("${tax.knowledge.size} nodes loaded")
     }
 
@@ -106,7 +106,11 @@ fun main(args: Array<String>) = mainBody {
     println("${results.size} results obtained in $time ms")
 
     val bw: BufferedWriter? = if (params.output.isNotEmpty()) File(params.output).bufferedWriter() else null
-    if (bw != null) println("Writing results to ${params.output}... ") else println()
+    if (bw != null) {
+        println("Writing results to ${params.output}... ")
+        bw.write("string_1,string_2,sim_min,sim_max")
+        bw.newLine()
+    } else println()
 
     results.sortedBy { it.first.second.id }.sortedBy { it.first.first.id }.withIndex().forEach {
         val str = it.value.first

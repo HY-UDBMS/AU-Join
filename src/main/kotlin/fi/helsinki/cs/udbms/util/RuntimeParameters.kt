@@ -41,7 +41,7 @@ class RuntimeParameters(parser: ArgParser) {
                 args,
                 helpFormatter = DefaultHelpFormatter(
                     epilogue = """
-                    Example: ./au-join --taxonomy tax.txt -j8 -c3 0.9 list1.txt list2.txt
+                    Example: ./AU-Join --taxonomy tax.txt --synonym syn.txt -c3 -o result.csv 0.9 list1.txt list2.txt
                 """.trimIndent()
                 )
             ).parseInto(::RuntimeParameters)

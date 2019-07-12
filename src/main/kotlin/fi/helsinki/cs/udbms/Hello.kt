@@ -29,6 +29,9 @@ import de.mpicbg.scicomp.kutils.parmap
 import fi.helsinki.cs.udbms.struct.*
 import fi.helsinki.cs.udbms.util.IO
 import fi.helsinki.cs.udbms.util.RuntimeParameters
+import fi.helsinki.cs.udbms.util.format
+import java.io.BufferedWriter
+import java.io.File
 import kotlin.system.measureTimeMillis
 
 fun main(args: Array<String>) = mainBody {
@@ -101,4 +104,26 @@ fun main(args: Array<String>) = mainBody {
                 .toList()
     }
     println("${results.size} results obtained in $time ms")
+
+    val bw: BufferedWriter? = if (params.output.isNotEmpty()) File(params.output).bufferedWriter() else null
+    if (bw != null) println("Writing results to ${params.output}... ") else println()
+
+    results.sortedBy { it.first.second.id }.sortedBy { it.first.first.id }.withIndex().forEach {
+        val str = it.value.first
+        val sim = it.value.second
+        if (bw == null) {
+            println(
+                "  ${it.index}: "
+                        + "(${str.first.id}, ${str.second.id}) has similarity "
+                        + "[${sim.start.format(3)}, ${sim.endInclusive.format(3)}]"
+            )
+        } else {
+            bw.write("${str.first.id},${str.second.id},${sim.start},${sim.endInclusive}")
+            bw.newLine()
+        }
+    }
+
+    bw?.close()
+
+    return@mainBody
 }

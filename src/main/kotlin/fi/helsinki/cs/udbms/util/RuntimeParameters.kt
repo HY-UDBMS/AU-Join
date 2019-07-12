@@ -41,7 +41,7 @@ class RuntimeParameters(parser: ArgParser) {
                 args,
                 helpFormatter = DefaultHelpFormatter(
                     epilogue = """
-                    Example: ./au-join --taxonomy tax.txt -j8 -o3 0.9 list1.txt list2.txt
+                    Example: ./au-join --taxonomy tax.txt -j8 -c3 0.9 list1.txt list2.txt
                 """.trimIndent()
                 )
             ).parseInto(::RuntimeParameters)
@@ -80,11 +80,16 @@ class RuntimeParameters(parser: ArgParser) {
     }
 
     val overlap by parser.storing(
-        "-o", "--overlap",
-        help = "number of overlaps (default: 1)"
+        "-c", "--common",
+        help = "number of common signatures (default: 1)"
     ) { toInt() }.default(1).addValidator {
-        if (value < 1) throw InvalidArgumentException("Number of overlaps must be at least 1")
+        if (value < 1) throw InvalidArgumentException("Number of common signatures must be at least 1")
     }
+
+    val output by parser.storing(
+        "-o", "--output",
+        help = "name of file for writing join results (default: to stdout)"
+    ).default("")
 
     val threshold by parser.positional(
         "THRESHOLD",

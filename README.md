@@ -1,6 +1,15 @@
 # AU-Join
 String similarity join incorporating multiple measures
 
+## To-do list
+* `SquareImp`-based verification algorithm
+* DP prefix selection
+* Sampling algorithm
+
+## Usage
+
+To get help, run `./AU-Join --help`.
+
 ```
 usage: [-h] [--jaccard JACCARD] [--taxonomy TAXONOMY] [--synonym SYNONYM]
        [-j THREAD] [-c COMMON] [-o OUTPUT] [THRESHOLD] [LIST_1] [LIST_2]
@@ -32,5 +41,6 @@ positional arguments:
   LIST_2                filename of the second segmented string list
 
 
-Example: ./au-join --taxonomy tax.txt -j8 -c3 0.9 list1.txt list2.txt
+Example: ./AU-Join --taxonomy tax.txt --synonym syn.txt --jaccard 3 -c3
+-oresult.csv 0.9 list1.txt list2.txt
 ```

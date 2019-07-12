@@ -25,6 +25,7 @@
 package fi.helsinki.cs.udbms
 
 import fi.helsinki.cs.udbms.struct.*
+import fi.helsinki.cs.udbms.struct.Jaccard
 
 class PebbleGenerator(
     private val synonymList: SynonymKnowledge?,
@@ -53,7 +54,7 @@ class PebbleGenerator(
         str.segments.forEach {
             val dewey = taxonomyList.getDewey(it.label) ?: return@forEach
 
-            val w = 1.0 / dewey.size
+            val w = 1.0 / dewey.length
 
             // add self
             pebbles.add(Pebble(dewey.label, KnowledgeType.Taxonomy, w, it))
@@ -94,21 +95,8 @@ class PebbleGenerator(
             // no gram for synonym and taxonomy segment. Trust them more than Jaccard
             if (synonymList?.getLHS(it.label) != null || taxonomyList?.getDewey(it.label) != null) return@forEach
 
-            if (it.label.length < gramSize) {
-                pebbles.add(Pebble(it.label, KnowledgeType.Jaccard, 1.0, it))
-                return@forEach
-            }
-
-            val last = it.label.length - gramSize
-            for (i in 0..last)
-                pebbles.add(
-                    Pebble(
-                        it.label.substring(i, i + gramSize),
-                        KnowledgeType.Jaccard,
-                        1.0 / (last + 1),
-                        it
-                    )
-                )
+            val grams = Jaccard.generateGrams(it, gramSize)
+            pebbles.addAll(grams.map { g -> Pebble(g, KnowledgeType.Jaccard, 1.0 / grams.size, it) })
         }
 
         return pebbles.toList()

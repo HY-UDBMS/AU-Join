@@ -24,31 +24,43 @@
 
 package fi.helsinki.cs.udbms.struct
 
-import kotlin.math.min
+object Jaccard {
+    @JvmStatic
+    fun getSimilarity(seg1: Segment, seg2: Segment, gramSize: Int): Double {
+        val grams1 = generateGrams(seg1, gramSize)
+        val grams2 = generateGrams(seg2, gramSize)
 
-class Dewey(val label: String) {
-    companion object {
-        @JvmStatic
-        fun getLCP(n1: Dewey, n2: Dewey): Dewey {
-            return Dewey(n1.path.take(getLCPLength(n1, n2)))
+        var intersection = 0
+        val h = mutableMapOf<String, Int>()
+        grams1.forEach { h[it] = h.getOrDefault(it, 0) + 1 }
+
+        for (g in grams2) {
+            if (!h.containsKey(g)) continue
+
+            val remaining = h[g]!! - 1
+            if (remaining == 0) h.remove(g) else h[g] = remaining
+
+            intersection++
         }
 
-        @JvmStatic
-        fun getLCPLength(n1: Dewey, n2: Dewey): Int {
-            for (i in 0 until min(n1.length, n2.length)) {
-                if (n1.path[i] != n2.path[i])
-                    return i
-            }
-            return min(n1.length, n2.length)
-        }
+        return intersection.toDouble() / (grams1.size + grams2.size - intersection)
     }
 
-    val path: List<Int> = label.split('.').map { it.toInt() }
-    val length: Int = path.size
+    @JvmStatic
+    fun generateGrams(seg: Segment, gramSize: Int): List<String> {
+        if (gramSize < 2) return emptyList()
 
-    constructor(path: List<Int>) : this(path.joinToString(separator = "."))
+        val grams = mutableListOf<String>()
 
-    fun getParent(): Dewey? = if (length == 1) null else Dewey(path.take(length - 1))
+        if (seg.label.length < gramSize) {
+            grams.add(seg.label)
+        } else {
+            val last = seg.label.length - gramSize
+            for (i in 0..last) {
+                grams.add(seg.label.substring(i, i + gramSize))
+            }
+        }
 
-    override fun toString() = label
+        return grams
+    }
 }

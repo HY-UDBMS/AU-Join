@@ -34,10 +34,6 @@ import kotlin.system.measureTimeMillis
 fun main(args: Array<String>) = mainBody {
     val params = RuntimeParameters.initialise(args)
 
-    println()
-    println("Running on ${params.threads} threads")
-    println()
-
     print("Reading string... ")
     val list1 = IO.readSegmentedStrings(params.list1)
     val list2 = IO.readSegmentedStrings(params.list2)
@@ -86,10 +82,23 @@ fun main(args: Array<String>) = mainBody {
     val index2 = InvertedIndex()
     signatures2.map { str -> str.value.map { p -> index2.add(p, p.segment) } }
 
-    print("Filtering... ")
+    print("Filtering on ${params.threads} threads... ")
     var candidates: List<SegmentedStringPair> = emptyList()
-    val time = measureTimeMillis {
+    var time = measureTimeMillis {
         candidates = AdaptivePrefixFilter(params.threshold, params.overlap).getCandidates(signatures1, index2)
     }
     println("${candidates.size} candidates obtained in $time ms")
+
+    print("Verifying on ${params.threads} threads... ")
+    var results: List<Pair<SegmentedStringPair, Double>> = emptyList()
+    time = measureTimeMillis {
+        val verifier = GreedySimilarityVerifier(params.threshold, syn, tax, params.gram)
+        results =
+            candidates.parmap(
+                numThreads = params.threads,
+                transform = { Pair(it, verifier.getSimilarity(it.first, it.second)) })
+                //.filter { it.second >= params.threads }
+                .toList()
+    }
+    println("${results.size} results obtained in $time ms")
 }

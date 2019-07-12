@@ -22,33 +22,32 @@
 // SOFTWARE.
 // 
 
-package fi.helsinki.cs.udbms.struct
+package fi.helsinki.cs.udbms
 
-import kotlin.math.min
+import fi.helsinki.cs.udbms.struct.SegmentedString
+import fi.helsinki.cs.udbms.struct.SynonymKnowledge
+import fi.helsinki.cs.udbms.struct.TaxonomyKnowledge
 
-class Dewey(val label: String) {
-    companion object {
-        @JvmStatic
-        fun getLCP(n1: Dewey, n2: Dewey): Dewey {
-            return Dewey(n1.path.take(getLCPLength(n1, n2)))
-        }
+class GreedySimilarityVerifier(
+    threshold: Double,
+    synonymList: SynonymKnowledge?,
+    taxonomyList: TaxonomyKnowledge?,
+    gramSize: Int?
+) : SimilarityVerifier(threshold, synonymList, taxonomyList, gramSize) {
+    override fun solveMIS(str1: SegmentedString, str2: SegmentedString): Solution {
+        val graph = buildGraph(getRelations(str1, str2))
 
-        @JvmStatic
-        fun getLCPLength(n1: Dewey, n2: Dewey): Int {
-            for (i in 0 until min(n1.length, n2.length)) {
-                if (n1.path[i] != n2.path[i])
-                    return i
+        val selectedNeighbours = mutableSetOf<Vertex>()
+        val selectedVertices = mutableSetOf<Vertex>()
+        graph.vertices
+            .sortedByDescending { it.weight }
+            .forEach {
+                if (selectedNeighbours.contains(it)) return@forEach
+
+                selectedVertices.add(it)
+                selectedNeighbours.addAll(it.neighbours)
             }
-            return min(n1.length, n2.length)
-        }
+
+        return Solution(selectedVertices, selectedNeighbours)
     }
-
-    val path: List<Int> = label.split('.').map { it.toInt() }
-    val length: Int = path.size
-
-    constructor(path: List<Int>) : this(path.joinToString(separator = "."))
-
-    fun getParent(): Dewey? = if (length == 1) null else Dewey(path.take(length - 1))
-
-    override fun toString() = label
 }

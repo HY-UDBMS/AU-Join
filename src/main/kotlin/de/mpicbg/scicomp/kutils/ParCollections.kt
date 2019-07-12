@@ -24,10 +24,10 @@
 
 package de.mpicbg.scicomp.kutils
 
-import fi.helsinki.cs.udbms.util.RuntimeParameters
 import java.util.concurrent.ConcurrentLinkedQueue
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
+import kotlin.math.max
 
 /**
  * Parallel collection mimicking  scala's .par().
@@ -38,7 +38,7 @@ class ParCol<T>(val it: Iterable<T>, val executorService: ExecutorService) : Ite
 
 /** Convert a stream into a parallel collection. */
 fun <T> Iterable<T>.par(
-    numThreads: Int = RuntimeParameters.getInstance()?.threads ?: 1,
+    numThreads: Int = max(Runtime.getRuntime().availableProcessors() - 2, 1),
     executorService: ExecutorService = Executors.newFixedThreadPool(numThreads)
 ): ParCol<T> {
     return ParCol(this, executorService)
@@ -62,7 +62,7 @@ fun <T, R> ParCol<T>.map(transform: (T) -> R): ParCol<R> {
 }
 
 fun <T, R> Iterable<T>.parmap(
-    numThreads: Int = RuntimeParameters.getInstance()?.threads ?: 1,
+    numThreads: Int = max(Runtime.getRuntime().availableProcessors() - 2, 1),
     exec: ExecutorService = Executors.newFixedThreadPool(numThreads),
     transform: (T) -> R
 ): Iterable<R> {

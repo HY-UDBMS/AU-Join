@@ -25,6 +25,7 @@
 package fi.helsinki.cs.udbms.util
 
 import com.xenomachina.argparser.ArgParser
+import com.xenomachina.argparser.DefaultHelpFormatter
 import com.xenomachina.argparser.InvalidArgumentException
 import com.xenomachina.argparser.default
 import kotlin.system.exitProcess
@@ -36,7 +37,14 @@ class RuntimeParameters(parser: ArgParser) {
 
         @JvmStatic
         fun initialise(args: Array<String>): RuntimeParameters {
-            parser = ArgParser(args).parseInto(::RuntimeParameters)
+            parser = ArgParser(
+                args,
+                helpFormatter = DefaultHelpFormatter(
+                    epilogue = """
+                    Example: ./au-join --taxonomy tax.txt -j8 -o3 0.9 list1.txt list2.txt
+                """.trimIndent()
+                )
+            ).parseInto(::RuntimeParameters)
 
             if (parser!!.synonym.isEmpty() && parser!!.taxonomy.isEmpty() && parser!!.gram == 0) {
                 println("You must specify at least one of --jaccard, --taxonomy, or --synonym")
@@ -49,30 +57,9 @@ class RuntimeParameters(parser: ArgParser) {
         fun getInstance() = parser
     }
 
-    val threads by parser.storing(
-        "-j", "--thread",
-        help = "number of threads (default: cores - 2)"
-    ) { toInt() }.default(maxOf(Runtime.getRuntime().availableProcessors() - 2, 1)).addValidator {
-        if (value < 1) throw InvalidArgumentException("Number of threads must be at least 1")
-    }
-
-    val threshold by parser.storing(
-        "-t", "--threshold",
-        help = "similarity threshold (0 - 1)"
-    ) { toDouble() }.default { 0.9 }.addValidator {
-        if (value <= 0 || value > 1) throw InvalidArgumentException("Threshold must be within (0, 1]")
-    }
-
-    val overlap by parser.storing(
-        "-o", "--overlap",
-        help = "number of overlaps (default: 1)"
-    ) { toInt() }.default(1).addValidator {
-        if (value < 1) throw InvalidArgumentException("Number of overlaps must be at least 1")
-    }
-
     val gram by parser.storing(
         "--jaccard",
-        help = "gram size for Jaccard similarity (> 1)"
+        help = "gram length for Jaccard similarity (> 1)"
     ) { toInt() }.default(0)
 
     val taxonomy by parser.storing(
@@ -84,6 +71,27 @@ class RuntimeParameters(parser: ArgParser) {
         "--synonym",
         help = "filename of synonym knowledge"
     ) { toString() }.default { "" }
+
+    val threads by parser.storing(
+        "-j", "--thread",
+        help = "number of threads for filtering and verification (default: number of cores minus 2)"
+    ) { toInt() }.default(maxOf(Runtime.getRuntime().availableProcessors() - 2, 1)).addValidator {
+        if (value < 1) throw InvalidArgumentException("Number of threads must be at least 1")
+    }
+
+    val overlap by parser.storing(
+        "-o", "--overlap",
+        help = "number of overlaps (default: 1)"
+    ) { toInt() }.default(1).addValidator {
+        if (value < 1) throw InvalidArgumentException("Number of overlaps must be at least 1")
+    }
+
+    val threshold by parser.positional(
+        "THRESHOLD",
+        help = "similarity threshold (0, 1]"
+    ) { toDouble() }.default(0.0).addValidator {
+        if (value <= 0 || value > 1) throw InvalidArgumentException("The similarity threshold must be within (0, 1].")
+    }
 
     val list1 by parser.positional(
         "LIST_1",

@@ -41,6 +41,5 @@ positional arguments:
   LIST_2                filename of the second segmented string list
 
 
-Example: ./AU-Join --taxonomy tax.txt --synonym syn.txt --jaccard 3 -c3
--oresult.csv 0.9 list1.txt list2.txt
+Example: ./AU-Join --taxonomy tax.txt --synonym syn.txt --jaccard 3 -c3 -oresult.csv 0.9 list1.txt list2.txt
 ```

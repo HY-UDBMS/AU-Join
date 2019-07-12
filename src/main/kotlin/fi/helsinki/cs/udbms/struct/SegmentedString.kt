@@ -27,13 +27,13 @@ package fi.helsinki.cs.udbms.struct
 import kotlin.math.ceil
 import kotlin.math.ln
 
-class SegmentedString(val datasetId: Int, val id: Int, val segments: List<Segment>) {
+class SegmentedString(val id: Int, val segments: List<Segment>) {
     val numberOfTokens = (segments.map { it.wordIds }.flatten().max() ?: -1) + 1
     val minPartitionSize = calculateMinPartitionSize()
 
     @Suppress("UNUSED_PARAMETER")
-    constructor(datasetId: Int, id: Int, segments: List<String>, dummy: Unit)
-            : this(datasetId, id, segments.map { Segment(it) }) {
+    constructor(id: Int, segments: List<String>, dummy: Unit)
+            : this(id, segments.map { Segment(it) }) {
         this.segments.forEach { it.segmentedString = this }
     }
 
@@ -41,7 +41,7 @@ class SegmentedString(val datasetId: Int, val id: Int, val segments: List<Segmen
 
     private fun unionAllSegments(): String = segments.joinToString(separator = ";")
 
-    override fun toString() = "$datasetId[$id]: ${unionAllSegments()}"
+    override fun toString() = "[$id] $numberOfTokens tokens"
 
     private fun calculateMinPartitionSize(): Int {
         val n = this.segments.map { it.numberOfWords }.max() ?: 1

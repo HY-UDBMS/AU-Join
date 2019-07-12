@@ -90,14 +90,14 @@ fun main(args: Array<String>) = mainBody {
     println("${candidates.size} candidates obtained in $time ms")
 
     print("Verifying on ${params.threads} threads... ")
-    var results: List<Pair<SegmentedStringPair, Double>> = emptyList()
+    var results: List<Pair<SegmentedStringPair, ClosedRange<Double>>> = emptyList()
     time = measureTimeMillis {
         val verifier = GreedySimilarityVerifier(params.threshold, syn, tax, params.gram)
         results =
             candidates.parmap(
                 numThreads = params.threads,
                 transform = { Pair(it, verifier.getSimilarity(it.first, it.second)) })
-                //.filter { it.second >= params.threads }
+                .filter { it.second.endInclusive >= params.threshold }
                 .toList()
     }
     println("${results.size} results obtained in $time ms")

@@ -26,6 +26,7 @@ package fi.helsinki.cs.udbms
 
 import fi.helsinki.cs.udbms.struct.*
 import kotlin.math.max
+import kotlin.math.min
 
 abstract class SimilarityVerifier(
     val threshold: Double,
@@ -33,7 +34,7 @@ abstract class SimilarityVerifier(
     private val taxonomyList: TaxonomyKnowledge?,
     private val gramSize: Int?
 ) {
-    fun getSimilarity(str1: SegmentedString, str2: SegmentedString): Double {
+    fun getSimilarity(str1: SegmentedString, str2: SegmentedString): ClosedRange<Double> {
         val solution = solveMIS(str1, str2)
 
         val hasUnusedToken =
@@ -42,12 +43,13 @@ abstract class SimilarityVerifier(
 
         val partitionSize = solution.selected.size + (if (hasUnusedToken) 1 else 0)
 
-        return solution.selected.map { it.weight }.sum() / partitionSize
+        val sim = solution.selected.map { it.weight }.sum() / partitionSize
+        return sim..(min(1.0, sim / solution.approximationRatio))
     }
 
     //region MIS
 
-    protected class Solution(val selected: Set<Vertex>, val neighbours: Set<Vertex>)
+    protected class Solution(val selected: Set<Vertex>, val neighbours: Set<Vertex>, val approximationRatio: Double)
 
     protected abstract fun solveMIS(str1: SegmentedString, str2: SegmentedString): Solution
 
@@ -141,7 +143,7 @@ abstract class SimilarityVerifier(
 
     protected fun buildGraph(relations: List<Relation>): Graph {
         val vertices = relations.map { Vertex(it, mutableSetOf(), it.weight) }.toMutableSet()
-        var k = 0
+        var k = 1 // for convenience, we define 1-claw to be a singleton set C with centre = C
         vertices.forEach { centre ->
             val conflicts = vertices
                 .filterNot { it == centre }

@@ -61,7 +61,7 @@ object IO {
         readLines(file)
             .par()
             .map { it.split('\t') }
-            .map { SegmentedString(file.hashCode(), it[0].toInt(), it[1].split(';'), Unit) }
+            .map { SegmentedString(it[0].toInt(), it[1].split(';'), Unit) }
             .unpar()
             .toList()
 

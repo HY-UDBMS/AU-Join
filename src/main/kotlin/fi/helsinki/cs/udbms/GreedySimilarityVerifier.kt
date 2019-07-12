@@ -48,6 +48,6 @@ class GreedySimilarityVerifier(
                 selectedNeighbours.addAll(it.neighbours)
             }
 
-        return Solution(selectedVertices, selectedNeighbours)
+        return Solution(selectedVertices, selectedNeighbours, 1.0 / (graph.clawFree - 1))
     }
 }

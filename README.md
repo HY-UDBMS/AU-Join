@@ -4,6 +4,11 @@
     
  In this implementation, we develop a unified framework to find similar records by combining multiple similarity measures.
 
+##  Enviroment
+
+Ubuntu 14.04.5 LTS
+
+Java 
 
 ## Usage
 

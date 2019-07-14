@@ -4,7 +4,7 @@ A similarity join aims to find all similar pairs between two collections of reco
     
 In this implementation, we develop a unified framework to find similar records by combining multiple similarity measures.
 
-## Enviroment
+## Environment
 
 You will need at least JRE version 8 to run this program.
 
@@ -33,7 +33,7 @@ optional arguments:
   -c COMMON,            number of common signatures (default: 1)
   --common COMMON
 
-  -o OUTPUT,            name of file for writing join results (default: to
+  -o OUTPUT,            name of a file for writing join results (default: to
   --output OUTPUT       stdout)
 
 

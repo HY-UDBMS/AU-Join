@@ -1,14 +1,14 @@
 # AU-Join
 
- A similarity join aims to find all similar pairs between two collections of records. Established algorithms utilise different similarity measures, either syntactic or semantic, to quantify the similarity between two records. However, when records are similar in forms of a mixture of syntactic and semantic relations, utilising a single measure becomes inadequate to disclose the real similarity between records, and hence unable to obtain high-quality join results.
+A similarity join aims to find all similar pairs between two collections of records. Established algorithms utilise different similarity measures, either syntactic or semantic, to quantify the similarity between two records. However, when records are similar in forms of a mixture of syntactic and semantic relations, utilising a single measure becomes inadequate to disclose the real similarity between records, and hence unable to obtain high-quality join results.
     
- In this implementation, we develop a unified framework to find similar records by combining multiple similarity measures.
+In this implementation, we develop a unified framework to find similar records by combining multiple similarity measures.
 
-##  Enviroment
+## Enviroment
 
-Ubuntu 14.04.5 LTS
+You will need at least JRE version 8 to run this program.
 
-Java 
+If you want to develop AU-Join, you should have at least JDK 8 installed, an IDE/editor with Kotlin language support, as well as Maven for restoring dependencies. (Shortcut: install JDK and IntelliJ 😉)
 
 ## Usage
 
@@ -48,11 +48,11 @@ positional arguments:
 Example: ./AU-Join --taxonomy tax.txt --synonym syn.txt --jaccard 3 -c3 -oresult.csv 0.9 list1.txt list2.txt
 ```
 
-## Welcome your comments and feedback:
+## Comments and feedback
 
 Pengfei Xu (pengfei.xu@helsinki.fi) and Jiaheng Lu (jiahenglu@gmail.com)
 
-## Next version will include:
+## Next version will include
 * `SquareImp`-based verification algorithm
 * DP prefix selection
 * Sampling algorithm

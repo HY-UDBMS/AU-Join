@@ -25,7 +25,6 @@
 package fi.helsinki.cs.udbms
 
 import fi.helsinki.cs.udbms.struct.*
-import fi.helsinki.cs.udbms.struct.Jaccard
 
 class PebbleGenerator(
     private val synonymList: SynonymKnowledge?,

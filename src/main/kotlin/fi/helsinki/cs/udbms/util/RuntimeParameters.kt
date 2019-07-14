@@ -59,25 +59,18 @@ class RuntimeParameters(parser: ArgParser) {
 
     val gram by parser.storing(
         "--jaccard",
-        help = "gram length for Jaccard similarity (> 1)"
+        help = "enable Jaccard similarity and set gram length (> 1)"
     ) { toInt() }.default(0)
 
     val taxonomy by parser.storing(
         "--taxonomy",
-        help = "filename of taxonomy knowledge"
+        help = "enable taxonomy similarity and specify the filename of taxonomy knowledge"
     ) { toString() }.default { "" }
 
     val synonym by parser.storing(
         "--synonym",
-        help = "filename of synonym knowledge"
+        help = "enable synonym similarity and specify the filename of synonym knowledge"
     ) { toString() }.default { "" }
-
-    val threads by parser.storing(
-        "-j", "--thread",
-        help = "number of threads for filtering and verification (default: number of cores minus 2)"
-    ) { toInt() }.default(maxOf(Runtime.getRuntime().availableProcessors() - 2, 1)).addValidator {
-        if (value < 1) throw InvalidArgumentException("Number of threads must be at least 1")
-    }
 
     val overlap by parser.storing(
         "-c", "--common",
@@ -85,6 +78,11 @@ class RuntimeParameters(parser: ArgParser) {
     ) { toInt() }.default(1).addValidator {
         if (value < 1) throw InvalidArgumentException("Number of common signatures must be at least 1")
     }
+
+    val singleThread by parser.flagging(
+        "--single",
+        help = "perform filtering and verification on a single thread (default: on multiple threads)"
+    )
 
     val output by parser.storing(
         "-o", "--output",

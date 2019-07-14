@@ -24,9 +24,8 @@
 
 package fi.helsinki.cs.udbms
 
-import de.mpicbg.scicomp.kutils.parmap
 import fi.helsinki.cs.udbms.struct.*
-import fi.helsinki.cs.udbms.util.RuntimeParameters
+import fi.helsinki.cs.udbms.util.forEachParallelOrSequential
 import java.util.concurrent.ConcurrentHashMap
 import kotlin.math.max
 import kotlin.math.min
@@ -35,11 +34,9 @@ class AdaptivePrefixFilter(private val threshold: Double, private val overlap: I
 
     fun getCandidates(signature1: Map<SegmentedString, List<Pebble>>, index2: InvertedIndex)
             : List<SegmentedStringPair> {
-        val threads = RuntimeParameters.getInstance()?.threads ?: 1
-
         val candidatePairs = ConcurrentHashMap<SegmentedStringPair, Unit>()
 
-        signature1.entries.parmap(numThreads = threads, transform = { (string1, keys1) ->
+        signature1.entries.forEachParallelOrSequential { (string1, keys1) ->
             val usedSegments = mutableMapOf<SegmentedString, MutableSet<Segment>>()
             val overlapCounts = mutableMapOf<SegmentedString, Int>()
             val candidate2 = mutableSetOf<SegmentedString>()
@@ -70,11 +67,11 @@ class AdaptivePrefixFilter(private val threshold: Double, private val overlap: I
 
                     if (overlapCounts[string2] ?: 0 >= overlap) {
                         candidate2.add(string2)
-                        candidatePairs.put(SegmentedStringPair(string1, string2), Unit)
+                        candidatePairs[SegmentedStringPair(string1, string2)] = Unit
                     }
                 }
             }
-        })
+        }
 
         return candidatePairs.keys.toList()
     }

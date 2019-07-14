@@ -24,9 +24,6 @@
 
 package fi.helsinki.cs.udbms.util
 
-import de.mpicbg.scicomp.kutils.map
-import de.mpicbg.scicomp.kutils.par
-import de.mpicbg.scicomp.kutils.unpar
 import fi.helsinki.cs.udbms.struct.SegmentedString
 import fi.helsinki.cs.udbms.struct.SynonymKnowledge
 import fi.helsinki.cs.udbms.struct.TaxonomyKnowledge
@@ -38,10 +35,8 @@ object IO {
     fun readSynonym(file: String): SynonymKnowledge =
         SynonymKnowledge(
             readLines(file)
-                .par()
-                .map { it.split('\t') }
-                .map { Pair(it[0], ("${it[0]};${it[1]}").split(';')) } // add LHS itself to hash
-                .unpar()
+                .mapParallel { it.split('\t') }
+                .mapParallel { Pair(it[0], ("${it[0]};${it[1]}").split(';')) } // add LHS itself to hash
                 .flatMap { kv -> kv.second.map { Pair(it, kv.first) } }
                 .associate { it }
         )
@@ -50,20 +45,15 @@ object IO {
     fun readTaxonomy(file: String): TaxonomyKnowledge =
         TaxonomyKnowledge(
             readLines(file)
-                .par()
-                .map { it.split('\t') }
-                .unpar()
+                .mapParallel { it.split('\t') }
                 .associate { Pair(it[1], it[0]) }
         )
 
     @JvmStatic
     fun readSegmentedStrings(file: String): List<SegmentedString> =
         readLines(file)
-            .par()
-            .map { it.split('\t') }
-            .map { SegmentedString(it[0].toInt(), it[1].split(';'), Unit) }
-            .unpar()
-            .toList()
+            .mapParallel { it.split('\t') }
+            .mapParallel { SegmentedString(it[0].toInt(), it[1].split(';'), Unit) }
 
     @JvmStatic
     private fun readLines(file: String): List<String> =

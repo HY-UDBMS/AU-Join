@@ -25,11 +25,8 @@
 package fi.helsinki.cs.udbms
 
 import com.xenomachina.argparser.mainBody
-import de.mpicbg.scicomp.kutils.parmap
 import fi.helsinki.cs.udbms.struct.*
-import fi.helsinki.cs.udbms.util.IO
-import fi.helsinki.cs.udbms.util.RuntimeParameters
-import fi.helsinki.cs.udbms.util.format
+import fi.helsinki.cs.udbms.util.*
 import java.io.BufferedWriter
 import java.io.File
 import kotlin.system.measureTimeMillis
@@ -60,8 +57,8 @@ fun main(args: Array<String>) = mainBody {
 
     run {
         print("Generating pebbles... ")
-        val pebbles1 = list1.parmap { Pair(it, PebbleGenerator(syn, tax, params.gram).generate(it)) }.toMap()
-        val pebbles2 = list2.parmap { Pair(it, PebbleGenerator(syn, tax, params.gram).generate(it)) }.toMap()
+        val pebbles1 = list1.mapParallel { Pair(it, PebbleGenerator(syn, tax, params.gram).generate(it)) }.toMap()
+        val pebbles2 = list2.mapParallel { Pair(it, PebbleGenerator(syn, tax, params.gram).generate(it)) }.toMap()
         println("${pebbles1.values.sumBy { it.size }} + ${pebbles2.values.sumBy { it.size }} pebbles generated")
 
         println("Initialising global ordering... ")
@@ -72,8 +69,8 @@ fun main(args: Array<String>) = mainBody {
         print("Selecting prefixes... ")
         val time = measureTimeMillis {
             val reducer = FastPebbleReducer(params.threshold, params.overlap, order)
-            signatures1 = list1.parmap { Pair(it, reducer.reduce(it, pebbles1[it] ?: emptyList())) }.toMap()
-            signatures2 = list2.parmap { Pair(it, reducer.reduce(it, pebbles2[it] ?: emptyList())) }.toMap()
+            signatures1 = list1.mapParallel { Pair(it, reducer.reduce(it, pebbles1[it] ?: emptyList())) }.toMap()
+            signatures2 = list2.mapParallel { Pair(it, reducer.reduce(it, pebbles2[it] ?: emptyList())) }.toMap()
         }
         println("${signatures1.values.sumBy { it.size }} + ${signatures2.values.sumBy { it.size }} pebbles as signatures in $time ms")
     }.run { println("Cleansing up... "); System.gc(); System.runFinalization(); }
@@ -85,21 +82,19 @@ fun main(args: Array<String>) = mainBody {
     val index2 = InvertedIndex()
     signatures2.map { str -> str.value.map { p -> index2.add(p, p.segment) } }
 
-    print("Filtering on ${params.threads} threads... ")
+    print("Filtering on ${if (params.singleThread) "a single thread" else "multiple threads"}... ")
     var candidates: List<SegmentedStringPair> = emptyList()
     var time = measureTimeMillis {
         candidates = AdaptivePrefixFilter(params.threshold, params.overlap).getCandidates(signatures1, index2)
     }
     println("${candidates.size} candidates obtained in $time ms")
 
-    print("Verifying on ${params.threads} threads... ")
+    print("Verifying on ${if (params.singleThread) "a single thread" else "multiple threads"}... ")
     var results: List<Pair<SegmentedStringPair, ClosedRange<Double>>> = emptyList()
     time = measureTimeMillis {
         val verifier = GreedySimilarityVerifier(params.threshold, syn, tax, params.gram)
         results =
-            candidates.parmap(
-                numThreads = params.threads,
-                transform = { Pair(it, verifier.getSimilarity(it.first, it.second)) })
+            candidates.mapParallelOrSequential { Pair(it, verifier.getSimilarity(it.first, it.second)) }
                 .filter { it.second.endInclusive >= params.threshold }
                 .toList()
     }
@@ -129,5 +124,6 @@ fun main(args: Array<String>) = mainBody {
 
     bw?.close()
 
+    Dispatcher.shutdown()
     return@mainBody
 }

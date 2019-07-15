@@ -92,7 +92,7 @@ fun main(args: Array<String>) = mainBody {
     print("Verifying on ${if (params.singleThread) "a single thread" else "multiple threads"}... ")
     var results: List<Pair<SegmentedStringPair, ClosedRange<Double>>> = emptyList()
     time = measureTimeMillis {
-        val verifier = GreedySimilarityVerifier(params.threshold, syn, tax, params.gram)
+        val verifier = SquareImpSimilarityVerifier(params.threshold, syn, tax, params.gram)
         results =
             candidates.mapParallelOrSequential { Pair(it, verifier.getSimilarity(it.first, it.second)) }
                 .filter { it.second.endInclusive >= params.threshold }

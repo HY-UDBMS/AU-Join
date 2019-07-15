@@ -24,7 +24,6 @@
 
 package fi.helsinki.cs.udbms
 
-import fi.helsinki.cs.udbms.struct.SegmentedString
 import fi.helsinki.cs.udbms.struct.SynonymKnowledge
 import fi.helsinki.cs.udbms.struct.TaxonomyKnowledge
 
@@ -34,9 +33,7 @@ class GreedySimilarityVerifier(
     taxonomyList: TaxonomyKnowledge?,
     gramSize: Int?
 ) : SimilarityVerifier(threshold, synonymList, taxonomyList, gramSize) {
-    override fun solveMIS(str1: SegmentedString, str2: SegmentedString): Solution {
-        val graph = buildGraph(getRelations(str1, str2))
-
+    override fun solveMIS(graph: Graph): Solution {
         val selectedNeighbours = mutableSetOf<Vertex>()
         val selectedVertices = mutableSetOf<Vertex>()
         graph.vertices
@@ -48,6 +45,6 @@ class GreedySimilarityVerifier(
                 selectedNeighbours.addAll(it.neighbours)
             }
 
-        return Solution(selectedVertices, selectedNeighbours, 1.0 / (graph.clawFree - 1))
+        return Solution(selectedVertices, 1.0 / (graph.clawFree - 1))
     }
 }

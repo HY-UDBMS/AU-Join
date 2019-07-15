@@ -35,13 +35,18 @@ abstract class SimilarityVerifier(
     private val gramSize: Int?
 ) {
     fun getSimilarity(str1: SegmentedString, str2: SegmentedString): ClosedRange<Double> {
-        val solution = solveMIS(str1, str2)
+        val solution = solveMIS(buildGraph(getRelations(str1, str2)))
 
-        val hasUnusedToken =
-            str1.numberOfTokens != solution.selected.flatMap { it.relation.seg1.wordIds }.distinct().count()
-                    || str2.numberOfTokens != solution.selected.flatMap { it.relation.seg2.wordIds }.distinct().count()
+        // Do not merge unselected tokens
+        // val hasUnusedToken =
+        //     str1.numberOfTokens != solution.selected.flatMap { it.relation.seg1.wordIds }.distinct().count()
+        //             || str2.numberOfTokens != solution.selected.flatMap { it.relation.seg2.wordIds }.distinct().count()
+        val unusedMax = max(
+            (0 until str1.numberOfTokens).subtract(solution.selected.flatMap { it.relation.seg1.wordIds }.distinct()).count(),
+            (0 until str2.numberOfTokens).subtract(solution.selected.flatMap { it.relation.seg2.wordIds }.distinct()).count()
+        )
 
-        val partitionSize = solution.selected.size + (if (hasUnusedToken) 1 else 0)
+        val partitionSize = solution.selected.size + unusedMax // (if (hasUnusedToken) 1 else 0)
 
         val sim = solution.selected.map { it.weight }.sum() / partitionSize
         return sim..(min(1.0, sim / solution.approximationRatio))
@@ -49,9 +54,9 @@ abstract class SimilarityVerifier(
 
     //region MIS
 
-    protected class Solution(val selected: Set<Vertex>, val neighbours: Set<Vertex>, val approximationRatio: Double)
+    protected class Solution(val selected: Set<Vertex>, val approximationRatio: Double)
 
-    protected abstract fun solveMIS(str1: SegmentedString, str2: SegmentedString): Solution
+    protected abstract fun solveMIS(graph: Graph): Solution
 
     //endregion
 
@@ -141,7 +146,7 @@ abstract class SimilarityVerifier(
 
     protected class Graph(val vertices: Set<Vertex>, val clawFree: Int)
 
-    protected fun buildGraph(relations: List<Relation>): Graph {
+    private fun buildGraph(relations: List<Relation>): Graph {
         val vertices = relations.map { Vertex(it, mutableSetOf(), it.weight) }.toMutableSet()
         var k = 1 // for convenience, we define 1-claw to be a singleton set C with centre = C
         vertices.forEach { centre ->

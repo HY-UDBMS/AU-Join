@@ -8,7 +8,6 @@
       <element id="extracted-dir" path="$MAVEN_REPOSITORY$/org/jetbrains/annotations/13.0/annotations-13.0.jar" path-in-jar="/" />
       <element id="extracted-dir" path="$MAVEN_REPOSITORY$/com/xenomachina/kotlin-argparser/2.0.7/kotlin-argparser-2.0.7.jar" path-in-jar="/" />
       <element id="extracted-dir" path="$MAVEN_REPOSITORY$/com/xenomachina/xenocom/0.0.7/xenocom-0.0.7.jar" path-in-jar="/" />
-      <element id="extracted-dir" path="$MAVEN_REPOSITORY$/org/jetbrains/kotlinx/kotlinx-coroutines-core/1.3.0-M2/kotlinx-coroutines-core-1.3.0-M2.jar" path-in-jar="/" />
     </root>
   </artifact>
 </component>

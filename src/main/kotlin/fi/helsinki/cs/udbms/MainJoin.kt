@@ -34,6 +34,8 @@ import kotlin.system.measureTimeMillis
 fun main(args: Array<String>) = mainBody {
     val params = RuntimeParameters.initialise(args)
 
+    /*=================================================================*/
+
     print("Reading string... ")
     val list1 = IO.readSegmentedStrings(params.list1)
     val list2 = IO.readSegmentedStrings(params.list2)
@@ -51,6 +53,8 @@ fun main(args: Array<String>) = mainBody {
         tax = IO.readTaxonomy(params.taxonomy)
         println("${tax.knowledge.size} nodes loaded")
     }
+
+    /*=================================================================*/
 
     var signatures1: Map<SegmentedString, List<Pebble>> = emptyMap()
     var signatures2: Map<SegmentedString, List<Pebble>> = emptyMap()
@@ -75,12 +79,16 @@ fun main(args: Array<String>) = mainBody {
         println("${signatures1.values.sumBy { it.size }} + ${signatures2.values.sumBy { it.size }} pebbles as signatures in $time ms")
     }.run { println("Cleansing up... "); System.gc(); System.runFinalization(); }
 
+    /*=================================================================*/
+
     println("Building inverted list... ")
     //val index1 = InvertedIndex()
     //signatures1.map { str -> str.value.map { p -> index1.add(p, p.segment) } }
 
     val index2 = InvertedIndex()
     signatures2.map { str -> str.value.map { p -> index2.add(p, p.segment) } }
+
+    /*=================================================================*/
 
     print("Filtering on ${if (params.singleThread) "a single thread" else "multiple threads"}... ")
     var candidates: List<SegmentedStringPair> = emptyList()
@@ -89,16 +97,25 @@ fun main(args: Array<String>) = mainBody {
     }
     println("${candidates.size} candidates obtained in $time ms")
 
-    print("Verifying on ${if (params.singleThread) "a single thread" else "multiple threads"}... ")
+    /*=================================================================*/
+
+    val verifier = when (params.verify) {
+        "SquareImp" -> SquareImpSimilarityVerifier(params.threshold, syn, tax, params.gram)
+        "SquareImp-Improved" -> SquareImpSimilarityVerifier(params.threshold, syn, tax, params.gram, true)
+        else -> GreedySimilarityVerifier(params.threshold, syn, tax, params.gram)
+    }
+
+    print("Verifying using ${params.verify} on ${if (params.singleThread) "a single thread" else "multiple threads"}... ")
     var results: List<Pair<SegmentedStringPair, ClosedRange<Double>>> = emptyList()
     time = measureTimeMillis {
-        val verifier = SquareImpSimilarityVerifier(params.threshold, syn, tax, params.gram)
         results =
             candidates.mapParallelOrSequential { Pair(it, verifier.getSimilarity(it.first, it.second)) }
                 .filter { it.second.endInclusive >= params.threshold }
                 .toList()
     }
     println("${results.size} results obtained in $time ms")
+
+    /*=================================================================*/
 
     val bw: BufferedWriter? = if (params.output.isNotEmpty()) File(params.output).bufferedWriter() else null
     if (bw != null) {
@@ -123,6 +140,8 @@ fun main(args: Array<String>) = mainBody {
     }
 
     bw?.close()
+
+    /*=================================================================*/
 
     Dispatcher.shutdown()
     return@mainBody

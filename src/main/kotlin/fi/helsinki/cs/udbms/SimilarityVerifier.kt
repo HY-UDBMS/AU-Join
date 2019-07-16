@@ -34,16 +34,22 @@ abstract class SimilarityVerifier(
     private val taxonomyList: TaxonomyKnowledge?,
     private val gramSize: Int?
 ) {
-    fun getSimilarity(str1: SegmentedString, str2: SegmentedString): ClosedRange<Double> {
-        val solution = solveMIS(buildGraph(getRelations(str1, str2)))
+    fun getSimilarity(str1: SegmentedString, str2: SegmentedString) =
+        getSimilarity(solveMIS(buildGraph(getRelations(str1, str2))))
+
+    protected fun getSimilarity(solution: Solution): ClosedRange<Double> {
+        if (solution.selected.isEmpty()) return 0.0..0.0
+
+        val str1 = solution.selected.first().relation.seg1.segmentedString
+        val str2 = solution.selected.first().relation.seg2.segmentedString
 
         // Do not merge unselected tokens
         // val hasUnusedToken =
         //     str1.numberOfTokens != solution.selected.flatMap { it.relation.seg1.wordIds }.distinct().count()
         //             || str2.numberOfTokens != solution.selected.flatMap { it.relation.seg2.wordIds }.distinct().count()
         val unusedMax = max(
-            (0 until str1.numberOfTokens).subtract(solution.selected.flatMap { it.relation.seg1.wordIds }.distinct()).count(),
-            (0 until str2.numberOfTokens).subtract(solution.selected.flatMap { it.relation.seg2.wordIds }.distinct()).count()
+            (0 until str1!!.numberOfTokens).subtract(solution.selected.flatMap { it.relation.seg1.wordIds }.distinct()).count(),
+            (0 until str2!!.numberOfTokens).subtract(solution.selected.flatMap { it.relation.seg2.wordIds }.distinct()).count()
         )
 
         val partitionSize = solution.selected.size + unusedMax // (if (hasUnusedToken) 1 else 0)

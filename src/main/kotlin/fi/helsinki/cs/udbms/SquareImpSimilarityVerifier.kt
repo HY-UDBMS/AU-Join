@@ -33,9 +33,15 @@ class SquareImpSimilarityVerifier(
     threshold: Double,
     synonymList: SynonymKnowledge?,
     taxonomyList: TaxonomyKnowledge?,
-    gramSize: Int?
+    gramSize: Int?,
+    private val simInsteadOfWeight: Boolean = false
 ) : SimilarityVerifier(threshold, synonymList, taxonomyList, gramSize) {
     override fun solveMIS(graph: Graph): Solution {
+        val approxRatio = if (simInsteadOfWeight)
+            2.0 / (graph.clawFree.toDouble().pow(2) - 1)
+        else
+            2.0 / graph.clawFree
+
         val claws = enumClaws(graph)
 
         var selectedVertices = emptySet<Vertex>()
@@ -53,14 +59,23 @@ class SquareImpSimilarityVerifier(
 
                 val newWeight = newSelectedVertices.sumByDouble { it.weight }
 
-                if (newWeight.pow(2) > weight.pow(2)) {
-                    selectedVertices = newSelectedVertices; weight = newWeight
-                    improved = true
+                if (simInsteadOfWeight) {
+                    if (getSimilarity(Solution(selectedVertices, approxRatio)).start
+                        < getSimilarity(Solution(newSelectedVertices, approxRatio)).start
+                    ) {
+                        selectedVertices = newSelectedVertices
+                        improved = true
+                    }
+                } else {
+                    if (newWeight.pow(2) > weight.pow(2)) {
+                        selectedVertices = newSelectedVertices; weight = newWeight
+                        improved = true
+                    }
                 }
             }
         } while (improved)
 
-        return Solution(selectedVertices, 2.0 / graph.clawFree)
+        return Solution(selectedVertices, approxRatio)
     }
 
     private fun enumClaws(graph: Graph): Set<Claw> {
@@ -90,8 +105,8 @@ class SquareImpSimilarityVerifier(
             while (stack.isNotEmpty()) {
                 val (claw, remaining, lastId) = stack.pop()
 
-                remaining.forEach { nextVertex ->
-                    if (vertexIds[nextVertex] ?: -1 < lastId) return@forEach
+                remaining.forEach nextVertex@{ nextVertex ->
+                    if (vertexIds[nextVertex] ?: -1 < lastId) return@nextVertex
 
                     val nextClaw = Claw(claw.centre, claw.talons.plus(nextVertex))
                     val nextRemaining = remaining.subtract(nextVertex.neighbours).minus(nextVertex)

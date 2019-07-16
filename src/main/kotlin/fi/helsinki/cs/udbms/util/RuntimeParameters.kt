@@ -79,6 +79,13 @@ class RuntimeParameters(parser: ArgParser) {
         if (value < 1) throw InvalidArgumentException("Number of common signatures must be at least 1")
     }
 
+    val verify by parser.mapping(
+        "--verify-greedy" to "Greedy",
+        "--verify-squareimp" to "SquareImp",
+        "--verify-squareimp-improved" to "SquareImp-Improved",
+        help = "Specify the verification method: Greedy, SquareImp, or our improved SquareImp (default: --verify-greedy)"
+    ).default { "Greedy" }
+
     val singleThread by parser.flagging(
         "--single",
         help = "perform filtering and verification on a single thread (default: on multiple threads)"

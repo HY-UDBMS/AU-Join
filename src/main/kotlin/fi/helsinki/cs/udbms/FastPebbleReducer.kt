@@ -30,32 +30,34 @@ class FastPebbleReducer(threshold: Double, overlap: Int, order: GlobalOrder) :
     PebbleReducer(threshold, overlap, order) {
     override fun reduce(str: SegmentedString, pebbles: Iterable<Pebble>): List<Pebble> {
         val bound = threshold * str.minPartitionSize
-        val pebblesSorted = pebbles.sortedByDescending { order.getOrder(it) }.toMutableList()
+        val pebbleRemaining = pebbles.sortedByDescending { order.getOrder(it) }.toMutableList()
 
         val store = mutableMapOf<Segment, Array<Double>>()
-        var removedSim = 0.0
+        var accSim = 0.0
 
-        while (pebblesSorted.size > 1) {
-            val it = pebblesSorted.first()
-            pebblesSorted.removeAt(0) // delete the first pebble
+        while (pebbleRemaining.size > 1) {
+            val it = pebbleRemaining.first()
+            pebbleRemaining.removeAt(0) // delete the first pebble
 
-            store.putIfAbsent(it.segment, Array(KnowledgeType.values().size) { 0.0 })
+            store.putIfAbsent(it.segment, Array((KnowledgeType.values().map { it.id }.max() ?: 0) + 1) { 0.0 })
 
-            removedSim -= store[it.segment]?.max() ?: 0.0
+            accSim -= store[it.segment]?.max() ?: 0.0
 
             val old = store[it.segment]?.get(it.type.id) ?: 0.0
             store[it.segment]?.set(it.type.id, old + it.weight)
 
-            removedSim += store[it.segment]?.max() ?: 0.0
+            accSim += store[it.segment]?.max() ?: 0.0
 
-            val futureSim = pebblesSorted.take(overlap - 1).sumByDouble { it.weight } // [overlap-1] heaviest pebbles
+            // [overlap-1] heaviest pebbles
+            val futureSim = pebbleRemaining.map { it.weight }.sortedDescending().take(overlap - 1).sum()
 
-            if (removedSim + futureSim >= bound) { // if too much, add it back and stop
-                pebblesSorted.add(0, it)
+            if (accSim + futureSim >= bound) { // if too much, add it back and stop
+                pebbleRemaining.add(0, it)
                 break
             }
+            if (pebbleRemaining.isEmpty()) return listOf(it)
         }
 
-        return pebblesSorted.toList()
+        return pebbleRemaining.toList()
     }
 }

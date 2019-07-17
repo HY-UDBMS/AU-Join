@@ -35,11 +35,14 @@ class SegmentedString(val id: Int, val segments: List<Segment>) {
     constructor(id: Int, segments: List<String>, dummy: Unit)
             : this(id, segments.map { Segment(it) }) {
         this.segments.forEach { it.segmentedString = this }
+        this.segments.forEach {
+            it.conflictSegments = this.segments
+                .filterNot { other -> other == it }
+                .filter { other -> other.wordIds.intersect(it.wordIds).isNotEmpty() }.toSet()
+        }
     }
 
     fun unionSegments(): String = segments.joinToString(separator = ";")
-
-    private fun unionAllSegments(): String = segments.joinToString(separator = ";")
 
     override fun toString() = "[$id] $numberOfTokens tokens"
 

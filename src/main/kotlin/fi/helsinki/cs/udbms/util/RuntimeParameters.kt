@@ -79,6 +79,12 @@ class RuntimeParameters(parser: ArgParser) {
         if (value < 1) throw InvalidArgumentException("Number of common signatures must be at least 1")
     }
 
+    val filter by parser.mapping(
+        "--filter-fast" to "Fast",
+        "--filter-dp" to "DP",
+        help = "Specify the filtering method: Fast (Heuristic) and DP (Dynamic Programming) (default: --filter-fast)"
+    ).default { "Fast" }
+
     val verify by parser.mapping(
         "--verify-greedy" to "Greedy",
         "--verify-squareimp" to "SquareImp",
@@ -93,8 +99,8 @@ class RuntimeParameters(parser: ArgParser) {
 
     val output by parser.storing(
         "-o", "--output",
-        help = "name of file for writing join results (default: to stdout)"
-    ).default("")
+        help = "method for handling join results: null (no output), stdout (to standard output), or a filename (output as csv) (default: -o null)"
+    ).default("null")
 
     val threshold by parser.positional(
         "THRESHOLD",

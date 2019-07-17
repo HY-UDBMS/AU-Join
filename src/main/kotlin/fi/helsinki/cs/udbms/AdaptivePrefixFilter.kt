@@ -55,9 +55,12 @@ class AdaptivePrefixFilter(private val threshold: Double, private val overlap: I
                         < threshold * max(string1.minPartitionSize, string2.minPartitionSize)
                     ) return@nextString2
 
-                    // check if either segment1 or segment2 is used by any other pair
+                    // check if either segment1 or segment2 is used by any other pebble pair
                     val used = usedSegments.getOrPut(string2, { mutableSetOf() })
                     if (used.contains(segment1) xor used.contains(segment2))
+                        return@nextString2
+                    // also check for conflict segments
+                    if (used.intersect(segment1.conflictSegments).isNotEmpty() || used.intersect(segment2.conflictSegments).isNotEmpty())
                         return@nextString2
 
                     // mark segment1 and segment2 as used for string2

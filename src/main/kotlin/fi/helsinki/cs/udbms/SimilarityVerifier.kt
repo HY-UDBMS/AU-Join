@@ -159,8 +159,10 @@ abstract class SimilarityVerifier(
             val conflicts = vertices
                 .filterNot { it == centre }
                 .filter {
-                    it.relation.seg1.wordIds.intersect(centre.relation.seg1.wordIds).isNotEmpty()
-                            || it.relation.seg2.wordIds.intersect(centre.relation.seg2.wordIds).isNotEmpty()
+                    it.relation.seg1 == centre.relation.seg1
+                            || it.relation.seg2 == centre.relation.seg2
+                            || it.relation.seg1.conflictSegments.contains(centre.relation.seg1)
+                            || it.relation.seg2.conflictSegments.contains(centre.relation.seg2)
                 }
             centre.neighbours.addAll(conflicts)
             k = max(k, conflicts.count())

@@ -26,6 +26,7 @@ package fi.helsinki.cs.udbms.struct
 
 class Segment(label: String) {
     var segmentedString: SegmentedString? = null
+    var conflictSegments = emptySet<Segment>()
     val label = label.split(' ').joinToString(separator = " ") { it.substring(it.indexOf(':') + 1) }
     val wordIds = label.split(' ').map { it.substring(0, it.indexOf(':')).toInt() }
     val numberOfWords = wordIds.size

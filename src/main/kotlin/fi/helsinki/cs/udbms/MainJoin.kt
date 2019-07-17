@@ -70,9 +70,16 @@ fun main(args: Array<String>) = mainBody {
         order.addAll(pebbles1.values.flatten())
         order.addAll(pebbles2.values.flatten())
 
+        /*=================================================================*/
+
+        val reducer = when (params.filter) {
+            "Fast" -> FastPebbleReducer(params.threshold, params.overlap, order)
+            "DP" -> DynamicProgrammingPebbleReducer(params.threshold, params.overlap, order)
+            else -> throw Exception("Invalid filtering method: ${params.filter}")
+        }
+
         print("Selecting prefixes... ")
         val time = measureTimeMillis {
-            val reducer = FastPebbleReducer(params.threshold, params.overlap, order)
             signatures1 = list1.mapParallel { Pair(it, reducer.reduce(it, pebbles1[it] ?: emptyList())) }.toMap()
             signatures2 = list2.mapParallel { Pair(it, reducer.reduce(it, pebbles2[it] ?: emptyList())) }.toMap()
         }
@@ -82,15 +89,12 @@ fun main(args: Array<String>) = mainBody {
     /*=================================================================*/
 
     println("Building inverted list... ")
-    //val index1 = InvertedIndex()
-    //signatures1.map { str -> str.value.map { p -> index1.add(p, p.segment) } }
-
     val index2 = InvertedIndex()
     signatures2.map { str -> str.value.map { p -> index2.add(p, p.segment) } }
 
     /*=================================================================*/
 
-    print("Filtering on ${if (params.singleThread) "a single thread" else "multiple threads"}... ")
+    print("Filtering using ${params.filter} on ${if (params.singleThread) "a single thread" else "multiple threads"}... ")
     var candidates: List<SegmentedStringPair> = emptyList()
     var time = measureTimeMillis {
         candidates = AdaptivePrefixFilter(params.threshold, params.overlap).getCandidates(signatures1, index2)
@@ -100,9 +104,10 @@ fun main(args: Array<String>) = mainBody {
     /*=================================================================*/
 
     val verifier = when (params.verify) {
+        "Greedy" -> GreedySimilarityVerifier(params.threshold, syn, tax, params.gram)
         "SquareImp" -> SquareImpSimilarityVerifier(params.threshold, syn, tax, params.gram)
         "SquareImp-Improved" -> SquareImpSimilarityVerifier(params.threshold, syn, tax, params.gram, true)
-        else -> GreedySimilarityVerifier(params.threshold, syn, tax, params.gram)
+        else -> throw Exception("Invalid verification method: ${params.verify}")
     }
 
     print("Verifying using ${params.verify} on ${if (params.singleThread) "a single thread" else "multiple threads"}... ")
@@ -110,32 +115,41 @@ fun main(args: Array<String>) = mainBody {
     time = measureTimeMillis {
         results =
             candidates.mapParallelOrSequential { Pair(it, verifier.getSimilarity(it.first, it.second)) }
-                .filter { it.second.endInclusive >= params.threshold }
+                .filter { it.second.start >= params.threshold }
                 .toList()
     }
     println("${results.size} results obtained in $time ms")
 
     /*=================================================================*/
 
-    val bw: BufferedWriter? = if (params.output.isNotEmpty()) File(params.output).bufferedWriter() else null
-    if (bw != null) {
-        println("Writing results to ${params.output}... ")
-        bw.write("string_1,string_2,sim_min,sim_max")
-        bw.newLine()
-    } else println()
+    val bw: BufferedWriter? = when (params.output) {
+        "null" -> null
+        "stdout" -> System.out.bufferedWriter()
+        else -> {
+            print("Writing results to ${params.output}... ")
+            val w = File(params.output).bufferedWriter()
+            w.write("string_1,string_2,sim_min,sim_max")
+            w.newLine()
+            w
+        }
+    }
+    println()
 
     results.sortedBy { it.first.second.id }.sortedBy { it.first.first.id }.withIndex().forEach {
         val str = it.value.first
         val sim = it.value.second
-        if (bw == null) {
-            println(
+        when (params.output) {
+            "null" -> {
+            }
+            "stdout" -> println(
                 "  ${it.index}: "
                         + "(${str.first.id}, ${str.second.id}) has similarity "
                         + "[${sim.start.format(3)}, ${sim.endInclusive.format(3)}]"
             )
-        } else {
-            bw.write("${str.first.id},${str.second.id},${sim.start},${sim.endInclusive}")
-            bw.newLine()
+            else -> {
+                bw!!.write("${str.first.id},${str.second.id},${sim.start},${sim.endInclusive}")
+                bw.newLine()
+            }
         }
     }
 

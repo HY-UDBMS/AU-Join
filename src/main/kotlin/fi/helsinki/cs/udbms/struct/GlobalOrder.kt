@@ -25,11 +25,20 @@
 package fi.helsinki.cs.udbms.struct
 
 class GlobalOrder {
-    private var order = mutableMapOf<Pebble, Int>()
+    private var frequency = mutableMapOf<Pebble, Int>()
+    private var order = mapOf<Pebble, Int>()
 
     fun addAll(pebbles: Iterable<Pebble>) {
-        order.putAll(pebbles.groupingBy { it }.eachCount())
+        pebbles.groupingBy { it }.eachCount().forEach { (it, count) ->
+            val freq = frequency.getOrDefault(it, 0)
+            frequency[it] = freq + count
+        }
+
+        // re-sort all pebbles
+        order = frequency.keys.sortedBy { frequency[it] }.withIndex().associate { Pair(it.value, it.index) }
     }
 
-    fun getOrder(p: Pebble) = order[p] ?: Int.MIN_VALUE
+    fun getOrder(p: Pebble): Int {
+        return order[p] ?: Int.MIN_VALUE
+    }
 }

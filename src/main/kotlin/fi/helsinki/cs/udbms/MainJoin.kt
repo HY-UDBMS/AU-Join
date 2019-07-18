@@ -32,7 +32,8 @@ import java.io.File
 import kotlin.system.measureTimeMillis
 
 fun main(args: Array<String>) = mainBody {
-    val params = RuntimeParameters.initialise(args)
+    val params = JoinParameters.initialise(args)
+    Dispatcher.initialise(params.singleThread)
 
     /*=================================================================*/
 
@@ -97,7 +98,7 @@ fun main(args: Array<String>) = mainBody {
     print("Filtering using ${params.filter} on ${if (params.singleThread) "a single thread" else "multiple threads"}... ")
     var candidates: List<SegmentedStringPair> = emptyList()
     var time = measureTimeMillis {
-        candidates = AdaptivePrefixFilter(params.threshold, params.overlap).getCandidates(signatures1, index2)
+        candidates = AdaptivePrefixFilter(params.threshold, params.overlap).getCandidates(signatures1, index2).first
     }
     println("${candidates.size} candidates obtained in $time ms")
 
@@ -124,7 +125,7 @@ fun main(args: Array<String>) = mainBody {
 
     val bw: BufferedWriter? = when (params.output) {
         "null" -> null
-        "stdout" -> System.out.bufferedWriter()
+        "stdout" -> null
         else -> {
             print("Writing results to ${params.output}... ")
             val w = File(params.output).bufferedWriter()

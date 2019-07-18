@@ -27,14 +27,16 @@ package fi.helsinki.cs.udbms
 import fi.helsinki.cs.udbms.struct.*
 import fi.helsinki.cs.udbms.util.forEachParallelOrSequential
 import java.util.concurrent.ConcurrentHashMap
+import java.util.concurrent.atomic.AtomicInteger
 import kotlin.math.max
 import kotlin.math.min
 
 class AdaptivePrefixFilter(private val threshold: Double, private val overlap: Int) {
 
     fun getCandidates(signature1: Map<SegmentedString, List<Pebble>>, index2: InvertedIndex)
-            : List<SegmentedStringPair> {
+            : Pair<List<SegmentedStringPair>, Int> {
         val candidatePairs = ConcurrentHashMap<SegmentedStringPair, Unit>()
+        val numberOfPairs = AtomicInteger()
 
         signature1.entries.forEachParallelOrSequential { (string1, keys1) ->
             val usedSegments = mutableMapOf<SegmentedString, MutableSet<Segment>>()
@@ -44,6 +46,8 @@ class AdaptivePrefixFilter(private val threshold: Double, private val overlap: I
             keys1.forEach nextKey@{ key1 ->
                 val segment1 = key1.segment
                 val list2 = index2.getList(key1) ?: return@nextKey
+
+                numberOfPairs.getAndIncrement()
 
                 list2.forEach nextString2@{ segment2 ->
                     val string2 = segment2.segmentedString ?: return@nextString2
@@ -76,6 +80,6 @@ class AdaptivePrefixFilter(private val threshold: Double, private val overlap: I
             }
         }
 
-        return candidatePairs.keys.toList()
+        return Pair(candidatePairs.keys.toList(), numberOfPairs.toInt())
     }
 }

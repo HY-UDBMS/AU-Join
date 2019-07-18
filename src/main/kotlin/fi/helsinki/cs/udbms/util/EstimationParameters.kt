@@ -30,21 +30,21 @@ import com.xenomachina.argparser.InvalidArgumentException
 import com.xenomachina.argparser.default
 import kotlin.system.exitProcess
 
-class RuntimeParameters(parser: ArgParser) {
+class EstimationParameters(parser: ArgParser) {
     companion object {
         @JvmStatic
-        private var parser: RuntimeParameters? = null
+        private var parser: EstimationParameters? = null
 
         @JvmStatic
-        fun initialise(args: Array<String>): RuntimeParameters {
+        fun initialise(args: Array<String>): EstimationParameters {
             parser = ArgParser(
                 args,
                 helpFormatter = DefaultHelpFormatter(
                     epilogue = """
-                    Example: ./AU-Join --taxonomy tax.txt --synonym syn.txt --jaccard 3 -c3 -oresult.csv 0.9 list1.txt list2.txt
+                    Example: ./AU-Est --taxonomy tax.txt --synonym syn.txt --jaccard 3 -oresult.csv 0.9 list1.txt list2.txt 1 2 3 4 5
                 """.trimIndent()
                 )
-            ).parseInto(::RuntimeParameters)
+            ).parseInto(::EstimationParameters)
 
             if (parser!!.synonym.isEmpty() && parser!!.taxonomy.isEmpty() && parser!!.gram == 0) {
                 println("You must specify at least one of --jaccard, --taxonomy, or --synonym")
@@ -72,13 +72,6 @@ class RuntimeParameters(parser: ArgParser) {
         help = "enable synonym similarity and specify the filename of synonym knowledge"
     ) { toString() }.default { "" }
 
-    val overlap by parser.storing(
-        "-c", "--common",
-        help = "number of common signatures (default: 1)"
-    ) { toInt() }.default(1).addValidator {
-        if (value < 1) throw InvalidArgumentException("Number of common signatures must be at least 1")
-    }
-
     val filter by parser.mapping(
         "--filter-fast" to "Fast",
         "--filter-dp" to "DP",
@@ -97,10 +90,24 @@ class RuntimeParameters(parser: ArgParser) {
         help = "perform filtering and verification on a single thread (default: on multiple threads)"
     )
 
-    val output by parser.storing(
-        "-o", "--output",
-        help = "method for handling join results: null (no output), stdout (to standard output), or a filename (output as csv) (default: -o null)"
-    ).default("null")
+    val sampleSize by parser.storing(
+        "-s", "--sample-size",
+        help = "specify the expected sample size for estimation (> 0, default: 100)"
+    ) { toInt() }.default { 100 }.addValidator {
+        if (value <= 0) throw InvalidArgumentException("the expected sample size must be at least 1")
+    }
+
+    val quantile by parser.storing(
+        "-q", "--quantile",
+        help = "specify the quantile for Student t-distribution (default: 0.842 for 60% confidence levels on both sides)"
+    ) { toDouble() }.default { 0.842 }
+
+    val iteration by parser.storing(
+        "-i", "--iteration",
+        help = "limit the number of iterations (> 0, default: 20)"
+    ) { toInt() }.default { 20 }.addValidator {
+        if (value <= 0) throw InvalidArgumentException("the expected sample size must be at least 1")
+    }
 
     val threshold by parser.positional(
         "THRESHOLD",
@@ -121,5 +128,13 @@ class RuntimeParameters(parser: ArgParser) {
         help = "filename of the second segmented string list"
     ).default("").addValidator {
         if (value.isEmpty()) throw InvalidArgumentException("You must specify two datasets")
+    }
+
+    val overlapList by parser.positionalList(
+        "OVERLAPS",
+        "Values of overlap to be tested",
+        1..Int.MAX_VALUE
+    ) { toInt() }.default { emptyList() }.addValidator {
+        if (value.isEmpty()) throw InvalidArgumentException("You muse specify at least one overlap value")
     }
 }

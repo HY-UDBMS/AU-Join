@@ -25,18 +25,26 @@
 package fi.helsinki.cs.udbms.util
 
 import kotlinx.coroutines.asCoroutineDispatcher
+import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
 
-object Dispatcher {
-    @JvmStatic
-    private val threadPool = Executors.newFixedThreadPool(
-        if (RuntimeParameters.getInstance()?.singleThread == true) 1
-        else Runtime.getRuntime().availableProcessors()
-    )
+class Dispatcher {
+    companion object {
+        @JvmStatic
+        private var threadPool: ExecutorService? = null
 
-    @JvmStatic
-    fun getInstance() = threadPool.asCoroutineDispatcher()
+        @JvmStatic
+        fun initialise(singleThread: Boolean) {
 
-    @JvmStatic
-    fun shutdown() = threadPool.shutdown()
+            threadPool = Executors.newFixedThreadPool(
+                if (singleThread) 1 else Runtime.getRuntime().availableProcessors()
+            )
+        }
+
+        @JvmStatic
+        fun getInstance() = threadPool!!.asCoroutineDispatcher()
+
+        @JvmStatic
+        fun shutdown() = threadPool?.shutdown()
+    }
 }

@@ -59,8 +59,7 @@ positional arguments:
 
   LIST_2                        filename of the second segmented string list
 
-example: ./AU-Join --taxonomy tax.txt --synonym syn.txt --jaccard 3 -c3
--oresult.csv 0.9 list1.txt list2.txt
+example: ./AU-Join --taxonomy tax.txt --synonym syn.txt --jaccard 3 -c3 -oresult.csv 0.9 list1.txt list2.txt
 ```
 
 ##### AU-Esti Usage
@@ -112,8 +111,7 @@ positional arguments:
 
   OVERLAPS                      values of overlap to be tested
 
-example: ./AU-Esti --taxonomy tax.txt --synonym syn.txt --jaccard 3 0.9 list1.txt
-list2.txt 1 2 3 4 5
+example: ./AU-Esti --taxonomy tax.txt --synonym syn.txt --jaccard 3 0.9 list1.txt list2.txt 1 2 3 4 5
 ```
 
 ## Feedback

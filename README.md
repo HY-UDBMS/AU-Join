@@ -37,8 +37,8 @@ optional arguments:
 
   -c COMMON, --common COMMON    number of common signatures (default: 1)
 
-  --filter-fast, --filter-dp    specify the filtering method: Fast (Heuristic)
-                                and DP (Dynamic Programming) (default:
+  --filter-fast, --filter-dp    specify the filtering method: Fast (heuristic)
+                                or DP (dynamic programming) (default:
                                 --filter-fast)
 
   --verify-greedy,              specify the verification method: Greedy,
@@ -81,8 +81,8 @@ optional arguments:
   --synonym SYNONYM             enable synonym similarity and specify the
                                 filename of synonym knowledge
 
-  --filter-fast, --filter-dp    specify the filtering method: Fast (Heuristic)
-                                and DP (Dynamic Programming) (default:
+  --filter-fast, --filter-dp    specify the filtering method: Fast (heuristic)
+                                or DP (dynamic programming) (default:
                                 --filter-fast)
 
   --verify-greedy,              specify the verification method: Greedy,

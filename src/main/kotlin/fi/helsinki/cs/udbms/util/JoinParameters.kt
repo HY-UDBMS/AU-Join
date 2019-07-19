@@ -82,7 +82,7 @@ class JoinParameters(parser: ArgParser) {
     val filter by parser.mapping(
         "--filter-fast" to "Fast",
         "--filter-dp" to "DP",
-        help = "specify the filtering method: Fast (Heuristic) and DP (Dynamic Programming) (default: --filter-fast)"
+        help = "specify the filtering method: Fast (heuristic) or DP (dynamic programming) (default: --filter-fast)"
     ).default { "Fast" }
 
     val verify by parser.mapping(

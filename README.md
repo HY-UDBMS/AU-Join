@@ -12,47 +12,114 @@ If you want to develop AU-Join, you should have at least JDK 8 installed, an IDE
 
 ## Usage
 
-To get help, run `./AU-Join --help`.
+This program consists of two parts: `AU-Join` for similarity join and `AU-Esti` for estimating the best overlap constraint.
+
+To get help, run `./AU-Join --help` or `./AU-Esti --help`.
+
+##### AU-Join Usage
 
 ```
 usage: [-h] [--jaccard JACCARD] [--taxonomy TAXONOMY] [--synonym SYNONYM]
-       [-j THREAD] [-c COMMON] [-o OUTPUT] [THRESHOLD] [LIST_1] [LIST_2]
+       [-c COMMON] [--filter-fast] [--verify-greedy] [--single] [-o OUTPUT]
+       [THRESHOLD] [LIST_1] [LIST_2]
 
 optional arguments:
-  -h, --help            show this help message and exit
+  -h, --help                    show this help message and exit
 
-  --jaccard JACCARD     gram length for Jaccard similarity (> 1)
+  --jaccard JACCARD             enable Jaccard similarity and set gram length
+                                (> 1)
 
-  --taxonomy TAXONOMY   filename of taxonomy knowledge
+  --taxonomy TAXONOMY           enable taxonomy similarity and specify the
+                                filename of taxonomy knowledge
 
-  --synonym SYNONYM     filename of synonym knowledge
+  --synonym SYNONYM             enable synonym similarity and specify the
+                                filename of synonym knowledge
 
-  -j THREAD,            number of threads for filtering and verification
-  --thread THREAD       (default: number of cores minus 2)
+  -c COMMON, --common COMMON    number of common signatures (default: 1)
 
-  -c COMMON,            number of common signatures (default: 1)
-  --common COMMON
+  --filter-fast, --filter-dp    specify the filtering method: Fast (Heuristic)
+                                and DP (Dynamic Programming) (default:
+                                --filter-fast)
 
-  -o OUTPUT,            name of a file for writing join results (default: to
-  --output OUTPUT       stdout)
+  --verify-greedy,              specify the verification method: Greedy,
+  --verify-squareimp,           SquareImp, or our improved SquareImp (default:
+  --verify-squareimp-improved   --verify-greedy)
 
+  --single                      perform filtering and verification on a single
+                                thread (default: on multiple threads)
+
+  -o OUTPUT, --output OUTPUT    method for handling join results: null (no
+                                output), stdout (to standard output), or a
+                                filename (output as csv) (default: -o null)
 
 positional arguments:
-  THRESHOLD             similarity threshold (0, 1]
+  THRESHOLD                     similarity threshold (0, 1]
 
-  LIST_1                filename of the first segmented string list
+  LIST_1                        filename of the first segmented string list
 
-  LIST_2                filename of the second segmented string list
+  LIST_2                        filename of the second segmented string list
 
-
-Example: ./AU-Join --taxonomy tax.txt --synonym syn.txt --jaccard 3 -c3 -oresult.csv 0.9 list1.txt list2.txt
+example: ./AU-Join --taxonomy tax.txt --synonym syn.txt --jaccard 3 -c3
+-oresult.csv 0.9 list1.txt list2.txt
 ```
 
-## Comments and feedback
+##### AU-Esti Usage
 
-Pengfei Xu (pengfei.xu@helsinki.fi) and Jiaheng Lu (jiahenglu@gmail.com)
+```
+usage: [-h] [--jaccard JACCARD] [--taxonomy TAXONOMY] [--synonym SYNONYM]
+       [--filter-fast] [--verify-greedy] [--single] [-s SAMPLE_SIZE]
+       [-q QUANTILE] [-i ITERATION] [THRESHOLD] [LIST_1] [LIST_2] [OVERLAPS]...
 
-## Next version will include
-* `SquareImp`-based verification algorithm
-* DP prefix selection
-* Sampling algorithm
+optional arguments:
+  -h, --help                    show this help message and exit
+
+  --jaccard JACCARD             enable Jaccard similarity and set gram length
+                                (> 1)
+
+  --taxonomy TAXONOMY           enable taxonomy similarity and specify the
+                                filename of taxonomy knowledge
+
+  --synonym SYNONYM             enable synonym similarity and specify the
+                                filename of synonym knowledge
+
+  --filter-fast, --filter-dp    specify the filtering method: Fast (Heuristic)
+                                and DP (Dynamic Programming) (default:
+                                --filter-fast)
+
+  --verify-greedy,              specify the verification method: Greedy,
+  --verify-squareimp,           SquareImp, or our improved SquareImp (default:
+  --verify-squareimp-improved   --verify-greedy)
+
+  --single                      perform filtering and verification on a single
+                                thread (default: on multiple threads)
+
+  -s SAMPLE_SIZE,               specify the expected sample size for
+  --sample-size SAMPLE_SIZE     estimation (> 0, default: 100)
+
+  -q QUANTILE,                  specify the quantile for Student
+  --quantile QUANTILE           t-distribution (default: 0.842 for 60%
+                                confidence levels on both sides)
+
+  -i ITERATION,                 limit the number of iterations (> 0, default:
+  --iteration ITERATION         20)
+
+positional arguments:
+  THRESHOLD                     similarity threshold (0, 1]
+
+  LIST_1                        filename of the first segmented string list
+
+  LIST_2                        filename of the second segmented string list
+
+  OVERLAPS                      values of overlap to be tested
+
+example: ./AU-Esti --taxonomy tax.txt --synonym syn.txt --jaccard 3 0.9 list1.txt
+list2.txt 1 2 3 4 5
+```
+
+## Feedback
+
+Pengfei Xu (pengfei.xu[at]helsinki[dot]fi) and Jiaheng Lu (jiahenglu[at]gmail[dot]com)
+
+## License
+
+MIT License

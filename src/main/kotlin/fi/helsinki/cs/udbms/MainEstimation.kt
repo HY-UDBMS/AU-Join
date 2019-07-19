@@ -32,6 +32,8 @@ import kotlin.math.pow
 import kotlin.system.measureTimeMillis
 
 fun main(args: Array<String>): Unit = mainBody {
+    println("Arguments: ${args.joinToString(separator = " ")}")
+
     val params = EstimationParameters.initialise(args)
     Dispatcher.initialise(params.singleThread)
 
@@ -66,7 +68,7 @@ fun main(args: Array<String>): Unit = mainBody {
 
     /*=================================================================*/
 
-    print("Running test drive... ")
+    print("Test driving... ")
     var verified = false
     val (filterTime, verifyTime) = params.overlapList.map {
         val result = testDrive(
@@ -96,12 +98,12 @@ fun main(args: Array<String>): Unit = mainBody {
     val p1 = params.sampleSize.toDouble() / list1.size
     val p2 = params.sampleSize.toDouble() / list2.size
 
-    var lastEstimations = emptyMap<Int, Estimation>()
+    var lastEstimations = emptyMap<Int, Estimation>() // Map[overlap, estimation]
 
     var iteration = 0
     while (++iteration <= params.iteration) {
-        val sample1 = getBernoulliSample(list1, p1)
-        val sample2 = getBernoulliSample(list2, p2)
+        val sample1 = list1.getBernoulliSample(p1).toList()
+        val sample2 = list2.getBernoulliSample(p2).toList()
 
         val estimations = params.overlapList.map { overlap ->
             val result = testDrive(params, sample1, sample2, pebbles1, pebbles2, order, syn, tax, overlap, true)
@@ -132,7 +134,7 @@ fun main(args: Array<String>): Unit = mainBody {
     }
 
     print("Overlap parameters from the best to the worst: ")
-    print(lastEstimations.values.sortedBy { it.scaledCost }.map { it.overlap }.joinToString())
+    print(lastEstimations.values.sortedBy { it.meanOfScaledCost }.map { it.overlap }.joinToString())
     println()
 
     Dispatcher.shutdown()
@@ -140,18 +142,17 @@ fun main(args: Array<String>): Unit = mainBody {
 }
 
 private fun shouldStop(iteration: Int, estimations: Map<Int, Estimation>): Boolean {
-    if (estimations.size == 1) return true
-    if (iteration < 5) return false
+    if (estimations.size == 1) return true // if only one candidate, stop anyway
+    if (iteration < 5) return false // discard instability in early stages
 
     val estimationsSorted = estimations.values.sortedBy { it.scaledCost }
 
     return estimationsSorted.first().getMaxScaledCost() < estimationsSorted.drop(1).first().getMinScaledCost()
 }
 
-private fun <T> getBernoulliSample(data: Iterable<T>, p: Double): List<T> {
-    val rand = ThreadLocalRandom.current()
+private fun <T> Iterable<T>.getBernoulliSample(p: Double): Iterable<T> {
     @Suppress("UNCHECKED_CAST")
-    return data.mapParallel { if (rand.nextDouble(1.0) < p) it else Unit }.filterNot { it == Unit } as List<T>
+    return this.mapParallel { if (ThreadLocalRandom.current().nextDouble(1.0) < p) it else Unit }.filterNot { it == Unit } as Iterable<T>
 }
 
 // region Estimation

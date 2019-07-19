@@ -41,7 +41,7 @@ class EstimationParameters(parser: ArgParser) {
                 args,
                 helpFormatter = DefaultHelpFormatter(
                     epilogue = """
-                    Example: ./AU-Est --taxonomy tax.txt --synonym syn.txt --jaccard 3 -oresult.csv 0.9 list1.txt list2.txt 1 2 3 4 5
+                    example: ./AU-Esti --taxonomy tax.txt --synonym syn.txt --jaccard 3 0.9 list1.txt list2.txt 1 2 3 4 5
                 """.trimIndent()
                 )
             ).parseInto(::EstimationParameters)
@@ -75,14 +75,14 @@ class EstimationParameters(parser: ArgParser) {
     val filter by parser.mapping(
         "--filter-fast" to "Fast",
         "--filter-dp" to "DP",
-        help = "Specify the filtering method: Fast (Heuristic) and DP (Dynamic Programming) (default: --filter-fast)"
+        help = "specify the filtering method: Fast (Heuristic) and DP (Dynamic Programming) (default: --filter-fast)"
     ).default { "Fast" }
 
     val verify by parser.mapping(
         "--verify-greedy" to "Greedy",
         "--verify-squareimp" to "SquareImp",
         "--verify-squareimp-improved" to "SquareImp-Improved",
-        help = "Specify the verification method: Greedy, SquareImp, or our improved SquareImp (default: --verify-greedy)"
+        help = "specify the verification method: Greedy, SquareImp, or our improved SquareImp (default: --verify-greedy)"
     ).default { "Greedy" }
 
     val singleThread by parser.flagging(
@@ -132,7 +132,7 @@ class EstimationParameters(parser: ArgParser) {
 
     val overlapList by parser.positionalList(
         "OVERLAPS",
-        "Values of overlap to be tested",
+        "values of overlap to be tested",
         1..Int.MAX_VALUE
     ) { toInt() }.default { emptyList() }.addValidator {
         if (value.isEmpty()) throw InvalidArgumentException("You muse specify at least one overlap value")

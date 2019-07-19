@@ -32,6 +32,8 @@ import java.io.File
 import kotlin.system.measureTimeMillis
 
 fun main(args: Array<String>) = mainBody {
+    println("Arguments: ${args.joinToString(separator = " ")}")
+
     val params = JoinParameters.initialise(args)
     Dispatcher.initialise(params.singleThread)
 

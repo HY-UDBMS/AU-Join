@@ -41,7 +41,7 @@ class JoinParameters(parser: ArgParser) {
                 args,
                 helpFormatter = DefaultHelpFormatter(
                     epilogue = """
-                    Example: ./AU-Join --taxonomy tax.txt --synonym syn.txt --jaccard 3 -c3 -oresult.csv 0.9 list1.txt list2.txt
+                    example: ./AU-Join --taxonomy tax.txt --synonym syn.txt --jaccard 3 -c3 -oresult.csv 0.9 list1.txt list2.txt
                 """.trimIndent()
                 )
             ).parseInto(::JoinParameters)
@@ -82,14 +82,14 @@ class JoinParameters(parser: ArgParser) {
     val filter by parser.mapping(
         "--filter-fast" to "Fast",
         "--filter-dp" to "DP",
-        help = "Specify the filtering method: Fast (Heuristic) and DP (Dynamic Programming) (default: --filter-fast)"
+        help = "specify the filtering method: Fast (Heuristic) and DP (Dynamic Programming) (default: --filter-fast)"
     ).default { "Fast" }
 
     val verify by parser.mapping(
         "--verify-greedy" to "Greedy",
         "--verify-squareimp" to "SquareImp",
         "--verify-squareimp-improved" to "SquareImp-Improved",
-        help = "Specify the verification method: Greedy, SquareImp, or our improved SquareImp (default: --verify-greedy)"
+        help = "specify the verification method: Greedy, SquareImp, or our improved SquareImp (default: --verify-greedy)"
     ).default { "Greedy" }
 
     val singleThread by parser.flagging(

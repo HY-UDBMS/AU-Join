@@ -2,7 +2,13 @@
 
 A similarity join aims to find all similar pairs between two collections of records. Established algorithms utilise different similarity measures, either syntactic or semantic, to quantify the similarity between two records. However, when records are similar in forms of a mixture of syntactic and semantic relations, utilising a single measure becomes inadequate to disclose the real similarity between records, and hence unable to obtain high-quality join results.
     
-In this implementation, we develop a unified framework to find similar records by combining multiple similarity measures.
+In this implementation, we develop a unified framework to find similar records by combining multiple similarity measures.  We  develop a new similarity framework that unifies the existing three kinds of similarity measures simultaneously, including syntactic (typographic) similarity, synonym-based similarity, and taxonomy-based similarity. 
+
+Please access the full PVLDB 2019 paper to find the technical details:
+
+Towards a Unified Framework for String Similarity Joins. PVLDB 2019
+
+https://www.cs.helsinki.fi/u/jilu/documents/P1131_Lu.pdf
 
 ## Environment
 

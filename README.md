@@ -12,17 +12,16 @@ https://www.cs.helsinki.fi/u/jilu/documents/P1131_Lu.pdf
 
 ## Environment
 
-You will need at least JRE version 8 to run this program.
+This software is developed by JAVA. You only need at least JRE version 8 to run this program.
 
-If you want to develop AU-Join, you should have at least JDK 8 installed, an IDE/editor with Kotlin language support, as well as Maven for restoring dependencies. (Shortcut: install JDK and IntelliJ 😉)
-
-Download the IntelliJ Community version here:
+But if you want to modfiy the codes of AU-Join, you should have at least JDK 8 installed, an IDE/editor with Kotlin language support, as well as Maven for restoring dependencies. (Shortcut: install JDK and IntelliJ 😉) Download the IntelliJ Community version here:
 https://www.jetbrains.com/idea/download/#section=windows
+
 
 ## Usage
 
-This program consists of two parts: `AU-Join` for similarity join and `AU-Esti` for estimating the best overlap constraint.
-
+This program consists of two parts: `AU-Join` for similarity join and `AU-Esti` for estimating the best overlap constraint. The purpose of `AU-Join` is to perform the unified join and  `AU-Esti` implements the sampling alroithms to select the best overlapping thresholds.
+ 
 To get help, run `./AU-Join --help` or `./AU-Esti --help`.
 
 ##### AU-Join Usage

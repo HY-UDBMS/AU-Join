@@ -27,6 +27,7 @@ But, if you want to modify the code of AU-Join, you should have at least JDK 8 i
 This program consists of two parts: `AU-Esti` for estimating the best overlap constraint and `AU-Join` for the actual similarity join. To test the software, one should first run `AU-Esti` and get some output similar to the following:
 
 ```
+Arguments: --taxonomy tax.txt --synonym syn.txt --jaccard 3 0.9 list1.txt list2.txt 1 2 3 4 5
 Reading string... 2000 + 2000 strings loaded
 Reading synonym... 200807 rules loaded
 Reading taxonomy... 28470 nodes loaded

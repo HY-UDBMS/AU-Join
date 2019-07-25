@@ -48,7 +48,7 @@ Note that the argument `-c3` specifies the overlap constraint for the join proce
 
 #### Tuning the algorithm
 
-The full list of arguments can be obtained by running `./AU-Esti --help` or `./AU-Join --help`. We attach them here or your convenience:
+The full list of arguments can be obtained by running `./AU-Esti --help` or `./AU-Join --help`. We attach them here for your convenience:
 
 ##### AU-Esti Usage
 

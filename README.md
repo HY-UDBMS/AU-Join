@@ -8,7 +8,7 @@ In this implementation, we develop a unified framework to find similar records b
 Please access [the PVLDB 2019 paper](https://www.cs.helsinki.fi/u/jilu/documents/P1131_Lu.pdf) to find the technical details:
 
 ```
-Pengfei  Xu  and  Jiaheng  Lu.   Towards  a  Unified  Framework  for  String Similarity Joins. PVLDB, 12(11): 1289–1302, 2019.
+Pengfei Xu and Jiaheng Lu. Towards a Unified Framework for String Similarity Joins. PVLDB, 12(11): 1289–1302, 2019.
 
 DOI: https://doi.org/10.14778/3342263.3342268
 ```

@@ -24,6 +24,10 @@ But, if you want to modify the code of AU-Join, you should have at least JDK 8 i
 
 ## Running
 
+Download the release as follow:
+https://github.com/HY-UDBMS/AU-Join/releases
+
+
 This program consists of two parts: `AU-Esti` for estimating the best overlap constraint and `AU-Join` for the actual similarity join. To test the software, one should first run `AU-Esti`
 
 ```

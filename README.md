@@ -24,7 +24,7 @@ But, if you want to modify the code of AU-Join, you should have at least JDK 8 i
 
 ## Running
 
-Download the release as follow:
+Download the release at:
 https://github.com/HY-UDBMS/AU-Join/releases
 
 

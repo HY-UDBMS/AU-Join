@@ -5,7 +5,7 @@ A similarity join aims to find all similar pairs between two collections of reco
     
 In this implementation, we develop a unified framework to find similar records by combining multiple similarity measures.  We  develop a new similarity framework that unifies the existing three kinds of similarity measures simultaneously, including syntactic (typographic) similarity, synonym-based similarity, and taxonomy-based similarity. 
 
-Please access [the PVLDB 2019 paper](https://www.cs.helsinki.fi/u/jilu/documents/P1131_Lu.pdf) to find the technical details:
+Please access [the PVLDB 2019 paper](https://www.cs.helsinki.fi/u/jilu/documents/P1131_Lu.pdf) to find the technical details. You may find the [slides](https://www.cs.helsinki.fi/u/jilu/documents/VLDB2019_Slide.pptx) of our presentation in VLDB 2019.
 
 ```
 Pengfei Xu and Jiaheng Lu. Towards a Unified Framework for String Similarity Joins. PVLDB, 12(11): 1289–1302, 2019.
